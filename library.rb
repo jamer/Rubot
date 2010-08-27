@@ -6,7 +6,6 @@ class Book
 		@name = name + ".book"
 		@exists = File.exists? @name
 		validate_path
-		puts "Name is #{@name}"
 	end
 
 	def validate_path

@@ -7,7 +7,6 @@
 require 'socket'
 
 require 'sources.rb'
-
 Sources.this_is(__FILE__)
 Sources << "irc.rb"
 Sources << "library.rb"
@@ -57,24 +56,22 @@ class Librarian
 			end
 			say "Ahh, here we go. For some reason it was in the basement. " +
 					"Happy reading!"
-			UserBase.get_user(nick).book = book
+			UserBase[nick].book = book
 		when /^catalog$/i
 			Library.list_books.each { |line| say line }
 		when /^read$/i
-			user = UserBase.get_user(nick)
+			user = UserBase[nick]
 			say user
 			book = user.book
 			if book.nil?
 				say "You need to open a book before you can start reading."
 				return
 			end
-=begin
 			user.read.each do |line|
 				msg line, nick
 			end
-=end
 		when /^resume$/i
-			user = UserBase.get_user(nick)
+			user = UserBase[nick]
 			book = user.book
 			if book.nil?
 				say @@resume_needs_book.random
@@ -84,7 +81,7 @@ class Librarian
 				say line, nick
 			end
 		when /^start over$/i
-			user = UserBase.get_user(nick)
+			user = UserBase[nick]
 			if user.book.nil?
 				say "Whaaatt? Go back to the beginning? " +
 						"You haven't even started reading a book yet."
@@ -93,8 +90,18 @@ class Librarian
 			say "Flipping back to the first page. " +
 					"You used to be at line #{user.line}."
 			user.line = 0
+		when /^jump to (\d+)$/i
+			user = UserBase[nick]
+			if user.book.nil?
+				say "Whaaatt? Search the book? " +
+						"You haven't even started reading a book yet."
+				return
+			end
+			line = $1.to_i
+			say @@line_set_to.random % line
+			UserBase[nick].line = line
 		when /^chunk$/i
-			chunk = UserBase.get_user(nick).chunk
+			chunk = UserBase[nick].chunk
 			say "For you, books will be delivered in #{chunk}-line chunks."
 		when /^set chunk (\d+)$/i
 			chunk = $1.to_i
@@ -107,7 +114,7 @@ class Librarian
 			else
 				say @@new_chunk_size.random % chunk
 			end
-			UserBase.get_user(nick).chunk = chunk
+			UserBase[nick].chunk = chunk
 		when /^help$/i
 			say @@help_msg
 		end
@@ -117,6 +124,10 @@ class Librarian
 		"You need to start reading before you can resume.",
 		"You don't have a book open yet.",
 		"I don't think you've chosen a book yet, sweetie.",
+	]
+
+	@@line_set_to = [
+		"Let's just pretend you've read the first %d lines of the book already...",
 	]
 
 	@@chunk_required = [
@@ -142,6 +153,8 @@ class Librarian
 		"    catalog",
 		"    read",
 		"    resume",
+		"    start over",
+		"    jump to <line>",
 		"    chunk",
 		"    set chunk <size>",
 	]

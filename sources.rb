@@ -1,25 +1,21 @@
 
-def run_only_once(desc)
-	@@symbols ||= {}
-	if not @@symbols[desc]
-		@@symbols[desc] = true
-		yield
-	end
-end
-
 class Sources
 	@@running_from = Time.new
 
 	# Open our singleton
 	class << self
 
-		# This needs to be called before << can be used.
-		def this_is(file)
+		def init_ourself
 			@@files ||= { __FILE__ => true }
+		end
+
+		def this_is(file)
+			init_ourself
 			@@files[file] = true
 		end
 
 		def <<(file)
+			init_ourself
 			@@files[file] = true
 			load file
 		end
@@ -40,6 +36,15 @@ class Sources
 			return got_one
 		end
 
+	end
+end
+
+
+def run_only_once(desc)
+	@@symbols ||= {}
+	if not @@symbols[desc]
+		@@symbols[desc] = true
+		yield
 	end
 end
 
