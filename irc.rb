@@ -18,7 +18,7 @@ class IRC
 		@nick = nick
 		@realname = realname
 		@channel = channel
-		@user_handler = handler
+		@custom_responce_handler = handler
 	end
 
 	def connect()
@@ -42,13 +42,13 @@ class IRC
 		@socket.send "#{m}\n", 0
 	end
 
-	def say(message, recipient = @channel)
+	def say(message, recipient = @channel, action = :privmsg)
     return if message == ""
     say_each message, recipient if message.is_a? Array
 
     recipient = @channel if recipient.nil?
 		message.each_line do |line|
-      msg "PRIVMSG #{recipient} :#{line.chomp} "
+			send action, message, recipient
     end
 		return nil
   end
@@ -59,20 +59,24 @@ class IRC
     end
   end
 
+	def privmsg(message, recipient = @channel)
+      msg "PRIVMSG #{recipient} :#{message} "
+	end
+
 	def action(message, recipient = @channel)
 		say "\001ACTION #{message}\001"
 	end
 
+	def notice(message, recipient = @channel)
+		msg "NOTICE #{recipient} :#{message} "
+	end
+
 	def evaluate(s)
-		# Make sure we have a valid expression (for security reasons), and
-		# evaluate it if we do, otherwise return an error message
-#		if s =~ /^[-+*\/\d\s\eE.()]*$/ then
-			begin
-				return eval(s).to_s
-			rescue Exception => detail
-				return detail.message
-			end
-#		end
+		begin
+			return eval(s).to_s
+		rescue Exception => detail
+			return detail.message
+		end
 		return "Error"
 	end
 
@@ -87,46 +91,47 @@ class IRC
 				if s == $stdin then
 					puts evaluate line
 				elsif s == @socket then
-					handle_server_input line
+					server_input line
 				end
 			end
 		end
 	end
 
-	def handle_server_input(s)
-		if @@log_input
-			log "<-- #{s}"
-		end
+	def server_input(s)
+		log "<-- #{s}" if @@log_input
 
 		case s.strip
 		when /^PING :(.+)$/i
-			log "Server ping"
 			msg "PONG :#{$1}"
-		when /^:(.+?)!(.+?)@(.+?)\sPRIVMSG\s(.+?)\s:(.+)/i
+		when /^:(\S+?)!(\S+?)@(\S+?)\sPRIVMSG\s(\S+?)\s:(\S+)/i
 			nick = $1
 			realname = $2
 			host = $3
-			channel = $4
+			source = $4
 			message = $5.strip
-			handle_privmsg nick, realname, host, channel, message
+
+			# Somebody is private messaging us.
+			if source == @nick
+				source = nick
+			end
+
+			respond_to nick, realname, host, source, message
 		end
 	end
 
-	def handle_privmsg(nick, realname, host, channel, message)
+	def respond_to(nick, realname, host, source, message)
 		case message
-=begin
 		when /^do (.+)/i
 			string = $1
 			resource
 			log "EVAL #{string} from #{nick}!#{realname}@#{host}"
-			say evaluate string
-=end
+			say evaluate(string), source
 		when /^>\s*update/i
-			resource
+			say (Sources.update ? "Updated." : "Already at latest revision.")
 		when /^>(.+)/i
 			command = $1.strip
-			resource
-			@user_handler.send :user_message, nick, command
+			Sources.update
+			@custom_responce_handler.send :user_message, nick, command
 		end
 	end
 

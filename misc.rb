@@ -3,23 +3,6 @@ def log(msg)
 	puts "[#{Time.new.strftime("%a %H:%M:%S")}] #{msg}"
 end
 
-def resource
-	log "Resourcing"
-	load SOURCE
-end
-
-def run_only_once(desc)
-	@@symbols ||= {}
-	if not @@symbols[desc]
-		@@symbols[desc] = true
-		yield
-	end
-end
-
-
-
-
-
 class String
 	def capitalize_each_word!
 		capitalize!

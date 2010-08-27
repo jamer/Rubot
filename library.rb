@@ -93,7 +93,7 @@ class User
 
 	def read
 		@line += @chunk
-		resume
+	resume
 	end
 
 	def resume

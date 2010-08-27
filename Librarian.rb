@@ -6,13 +6,14 @@
 
 require 'socket'
 
-load "irc.rb"
-load "library.rb"
-load "misc.rb"
+require 'sources.rb'
+
+Sources.this_is(__FILE__)
+Sources << "irc.rb"
+Sources << "library.rb"
+Sources << "misc.rb"
 
 run_only_once :defines do
-	SOURCE = __FILE__
-
 	SERVER = "irc.omegadev.org"
 	PORT = 6667
 
@@ -76,7 +77,7 @@ class Librarian
 			user = UserBase.get_user(nick)
 			book = user.book
 			if book.nil?
-				say "You need to start reading before you can resume."
+				say @@resume_needs_book.random
 				return
 			end
 			user.resume.each do |line|
@@ -98,20 +99,42 @@ class Librarian
 		when /^set chunk (\d+)$/i
 			chunk = $1.to_i
 			if chunk == 0
-				say "You need a chunk. You can't have none. :p"
+				say @@chunk_required.random
 				return
 			elsif chunk > 1000
-				say "Whoa whoa whoa, I think 1000 is a big enough number, don't you?"
-				say "You've been set to a chunk of 1000"
 				chunk = 1000
+				say @@too_much_chunk.random % [chunk, chunk]
 			else
-				say "I will now send you books in chunks of #{chunk}-lines at a time."
+				say @@new_chunk_size.random % chunk
 			end
 			UserBase.get_user(nick).chunk = chunk
 		when /^help$/i
 			say @@help_msg
 		end
 	end
+
+	@@resume_needs_book = [
+		"You need to start reading before you can resume.",
+		"You don't have a book open yet.",
+		"I don't think you've chosen a book yet, sweetie.",
+	]
+
+	@@chunk_required = [
+		"You need a chunk. You can't have none. :p",
+		"Zero means 'nothing,' and I can't permit you to have an absense of chunk.",
+	]
+
+	@@too_much_chunk = [
+		"Whoa whoa whoa, I think %d is a big enough number, don't you?\n" +
+			"You've been set to a chunk of %d",
+		"Err, you say you want *more* than %d? \nI dunno... %d has always " +
+			"been enough for me. So that's what I'm setting you to.",
+	]
+
+	@@new_chunk_size = [
+		"I will now send you books in chunks of %d-lines at a time.",
+		"Your books will now come in %d-line chunks.",
+	]
 
 	@@help_msg = [
 		"Commands must be prefixed with a greater-than (>) sign",
