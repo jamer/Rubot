@@ -16,9 +16,9 @@ run_only_once :defines do
 	SERVER = "irc.omegadev.org"
 	PORT = 6667
 
-	NICK = "LibApprentice"
+	NICK = "Librarian"
 	HOST = REALNAME = "localhost"
-	CHANNEL = "#bot"
+	CHANNEL = "#books"
 end
 
 
@@ -61,15 +61,12 @@ class Librarian
 			Library.list_books.each { |line| say line }
 		when /^read$/i
 			user = UserBase[nick]
-			say user
 			book = user.book
 			if book.nil?
 				say "You need to open a book before you can start reading."
 				return
 			end
-			user.read.each do |line|
-				msg line, nick
-			end
+			say user.read, nick
 		when /^resume$/i
 			user = UserBase[nick]
 			book = user.book

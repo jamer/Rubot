@@ -22,7 +22,7 @@ class Book
 	def read(offset, count)
 		return if !exists?
     lines = []
-		File.new @name do |file|
+		File.open @name do |file|
 			offset.times { file.gets }
 			count.times { lines << file.gets.strip + " " }
 		end
