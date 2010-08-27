@@ -42,29 +42,25 @@ class IRC
 		@socket.send "#{m}\n", 0
 	end
 
-	def channel_msg(msg, channel = @channel)
-		if msg.is_a? String
-			if msg.include? "\n"
-				lines = msg.split "\n"
-				lines.each do |line|
-					channel_msg line, channel
-				end
-				return
-			elsif msg == ""
-				return
-			end
-		elsif msg.respond_to? :each
-			msg.each do |item|
-				channel_msg item, channel
-			end
-		end
+	def say(message, recipient = @channel)
+    return if message == ""
+    say_each message, recipient if message.is_a? Array
 
-		msg "PRIVMSG #{channel} :#{msg}"
+    recipient = @channel if recipient.nil?
+		message.each_line do |line|
+      msg "PRIVMSG #{recipient} :#{line.chomp} "
+    end
 		return nil
-	end
+  end
 
-	def action(msg, channel = @channel)
-		channel_msg "\001ACTION #{msg}\001"
+  def say_each(list, recipient = @channel)
+    list.each do |item|
+      say item, recipient
+    end
+  end
+
+	def action(message, recipient = @channel)
+		say "\001ACTION #{message}\001"
 	end
 
 	def evaluate(s)
@@ -74,25 +70,23 @@ class IRC
 			begin
 				return eval(s).to_s
 			rescue Exception => detail
-				puts detail.message
+				return detail.message
 			end
 #		end
 		return "Error"
 	end
 
 	def main_loop()
-		# Just keep on truckin' until we disconnect
+		# Just keep on trucking until we disconnect
 		while true
 			ready = select([@socket, $stdin], nil, nil, nil)
 			next if !ready
 			for s in ready[0]
+        return if s.eof
+        line = s.gets
 				if s == $stdin then
-					return if s.eof
-					line = s.gets
 					puts evaluate line
 				elsif s == @socket then
-					return if s.eof
-					line = s.gets
 					handle_server_input line
 				end
 			end
@@ -115,8 +109,6 @@ class IRC
 			channel = $4
 			message = $5.strip
 			handle_privmsg nick, realname, host, channel, message
-		else
-			puts s
 		end
 	end
 
@@ -127,7 +119,7 @@ class IRC
 			string = $1
 			resource
 			log "EVAL #{string} from #{nick}!#{realname}@#{host}"
-			channel_msg evaluate string
+			say evaluate string
 =end
 		when /^>\s*update/i
 			resource

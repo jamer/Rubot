@@ -11,9 +11,9 @@ class Book
 
 	def validate_path
 		# Protect against dangerous paths
-		if @name.include? "/" or @name.include? "\\"
-			@exists = false
-		end
+    ["/", "\\"].each do |c|
+      @exists = false if @name.include? c
+    end
 	end
 
 	def exists?
@@ -22,11 +22,11 @@ class Book
 
 	def read(offset, count)
 		return if !exists?
-		file = File.new @name
-		offset.times { file.gets }
-		lines = []
-		count.times { lines << file.gets.strip + " " }
-		file.close
+    lines = []
+		File.new @name do |file|
+			offset.times { file.gets }
+			count.times { lines << file.gets.strip + " " }
+		end
 		return lines
 	end
 
@@ -39,20 +39,29 @@ class Library
 
 		@@books ||= {}
 
-		def get_book(name)
-			name.downcase!
-			if not @@books.include? name
-				book = Book.new name
-				@@books[name] = book if book.exists?
+
+		def load_book(title)
+			if !@@books.include? title
+				book = Book.new title
+				@@books[title] = book
 			end
-			return @@books[name]
+		end
+
+		def get_book(title)
+			title.downcase!
+			load_book title
+			return @@books[title]
+		end
+
+		def [](title)
+			return get_book title
 		end
 
 		def list_books
 			return Dir.glob("*.book").collect do |name|
 				name = name.gsub(".book", "")
 				name.capitalize_each_word!
-			end
+			end.sort
 		end
 
 	end
@@ -66,7 +75,7 @@ class User
 
 	def initialize(name)
 		@nick = name
-		@chunk = 10
+		@chunk = 20
 	end
 
 	def nick
@@ -84,7 +93,7 @@ class User
 
 	def read
 		@line += @chunk
-		return book.read @line, @chunk
+		resume
 	end
 
 	def resume
@@ -101,14 +110,18 @@ class UserBase
 
 		def ensure_registered(name)
 			if !@@users.include? name
-				@@users[name] = User.new(name)
+				@@users[name] = User.new name
 			end
 		end
 
 		def get_user(name)
 			@@users ||= {}
-			ensure_registered(name)
+			ensure_registered name
 			return @@users[name]
+		end
+
+		def [](name)
+			return get_user name.to_sym
 		end
 
 	end

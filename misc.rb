@@ -8,6 +8,15 @@ def resource
 	load SOURCE
 end
 
+def run_only_once(desc)
+	@@symbols ||= {}
+	if not @@symbols[desc]
+		@@symbols[desc] = true
+		yield
+	end
+end
+
+
 
 
 
