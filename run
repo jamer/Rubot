@@ -1,5 +1,0 @@
-#!/bin/bash
-
-ulimit -u 10
-ruby Librarian.rb
-

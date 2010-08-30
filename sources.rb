@@ -39,7 +39,6 @@ class Sources
 	end
 end
 
-
 def run_only_once(desc)
 	@@symbols ||= {}
 	if not @@symbols[desc]
@@ -48,4 +47,7 @@ def run_only_once(desc)
 	end
 end
 
+def up
+	return Sources.update
+end
 

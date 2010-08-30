@@ -1,69 +1,101 @@
 
-# The IRC class, which talks to the server and holds the main event loop
-class IRC
+# The IRCBot class, which talks to a server and holds the main event loop
+class IRCBot
+	attr_reader :socket
 
-	def initialize(host, server, port, nick, realname, channel, handler)
+	# Lets create our IRC commands
+	{
+		:login => "USER %s %s %s :%s",
+		:nick => "NICK %s",
+		:umode => "MODE %s",
+
+		:pong => "PONG :%s",
+
+		:privmsg => "PRIVMSG %s :%s",
+		:action => "PRIVMSG %s :\001ACTION %s\001",
+		:notice => "NOTICE %s :%s",
+
+		:join => "JOIN %s",
+		:part => "PART %s",
+		
+		:quit => "QUIT",
+	}.each do |command, message|
+		define_method command do |*args|
+			msg message % args
+		end
+	end
+
+	def initialize(id, host, server, port, nick, realname)
+		@id = id
 		@host = host
 		@server = server
 		@port = port
 		@nick = nick
 		@realname = realname
-		@channel = channel
-		@custom_responce_handler = handler
 
 		@log_input = false
 		@log_output = false
+
+		@raw_listeners = Array.new
+		@privmsg_listeners = Array.new
 	end
 
-	def connect()
+	def add_listener(listener)
+		@raw_listeners << listener
+	end
+
+	def add_privmsg_listener(listener)
+		@privmsg_listeners << listener
+	end
+
+	def remove_listener(listener)
+		@raw_listeners.delete(listener)
+	end
+
+	def remove_privmsg_listener(listener)
+		@privmsg_listeners.delete(listener)
+	end
+
+	def check_for_death
+		if @raw_listeners.empty? and @privmsg_listens.empty?
+			Roobot.remove_bot @id
+		end
+	end
+
+	def connect
 		# Connect to the IRC server
 		@socket = TCPSocket.open @server, @port
-		[
-			"USER #{@nick} #{@server} #{@host} :#{@realname}",
-			"NICK #{@nick}",
-			"MODE #{@nick} +B",
-			"JOIN #{@channel}"
-		].each do |line|
-			msg line
-		end
+		login @nick, @server, @host, @realname
+		nick @nick
+		umode @nick, "+B"
+	end
+
+	def disconnect
+		quit
 	end
 
 	def msg(m)
 		# Send a message to the IRC server and print it to the screen
 		log "--> #{m}" if @log_output
-		@socket.send "#{m}\n", 0
+		@socket.puts "#{m}", 0
 	end
 
-	def privmsg(message, recipient = @channel)
-		msg "PRIVMSG #{recipient} :#{message} "
-	end
+	def say(recipient, message, action = :privmsg)
+		raise "No recipient" if recipient.nil?
 
-	def action(message, recipient = @channel)
-		say "\001ACTION #{message}\001"
-	end
-
-	def notice(message, recipient = @channel)
-		msg "NOTICE #{recipient} :#{message} "
-	end
-
-	def say(message, recipient = @channel, action = :privmsg)
 		return if message == ""
+
 		if message.is_a? Array
-			say_each message, recipient, action
+			message.each do |piece|
+				say recipient, piece, action
+			end
 			return
 		end
 
-		recipient = @channel if recipient.nil?
 		message.each_line do |line|
-			send action, message, recipient
+			send action, recipient, message
 		end
 		return nil
-	end
-
-	def say_each(list, recipient = @channel, action = :privmsg)
-		list.each do |item|
-			say item, recipient
-		end
 	end
 
 	def evaluate(s)
@@ -75,29 +107,12 @@ class IRC
 		return "Error"
 	end
 
-	def main_loop()
-		# Just keep on trucking until we disconnect
-		while true
-			ready = select([@socket, $stdin], nil, nil, nil)
-			next if !ready
-			for s in ready[0]
-        return if s.eof
-        line = s.gets
-				if s == $stdin then
-					puts evaluate line
-				elsif s == @socket then
-					server_input line
-				end
-			end
-		end
-	end
-
 	def server_input(s)
 		log "<-- #{s}" if @log_input
 
 		case s.strip
 		when /^PING :(.+)$/i
-			msg "PONG :#{$1}"
+			pong $1
 		when /^:(\S+?)!(\S+?)@(\S+?)\sPRIVMSG\s(\S+?)\s:(.+)/i
 			nick = $1
 			realname = $2
@@ -115,31 +130,28 @@ class IRC
 	end
 
 	def respond_to(nick, realname, host, source, message)
-		case message
-=begin
-		when /^do (.+)/i
-			string = $1
-			resource
-			log "EVAL #{string} from #{nick}!#{realname}@#{host}"
-			say evaluate(string), source
-=end
-		when /^>\s*update/i
-			responces = Sources.update ? @@update_yes : @@update_no
-			say responces.random
-		when /^>(.+)/i
-			command = $1.strip
-			Sources.update
-			@custom_responce_handler.send :user_message, nick, command
+		handled = false
+		@privmsg_listeners.each do |listener|
+			if not handled
+				handled = listener.call nick, realname, host, source, message
+			end 
 		end
+
+=begin
+		case message
+		when /^>\s*update/i
+			responces = Sources.update ? @@update_success : @@update_fail
+			say responces.random
+=end
 	end
 
-	@@update_yes = [
+	@@update_success = [
 		"Updated.",
 		"Now up to date.",
 		"Ahh! I missed that update. Thanks for noticing.",
 	]
 
-	@@update_no = [
+	@@update_fail = [
 		"Already at latest revision.",
 		"Already up to date.",
 		"Nothing new worth reporting, sir.",
