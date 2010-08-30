@@ -7,12 +7,13 @@
 require 'socket'
 
 require 'sources.rb'
-Sources.this_is(__FILE__)
-Sources << "actionlist.rb"
-Sources << "irc.rb"
-Sources << "library.rb"
-Sources << "misc.rb"
-Sources << "plugin.rb"
+Sources.add_file __FILE__
+Sources.require "actionlist.rb"
+Sources.require "actionlist.rb"
+Sources.require "irc.rb"
+Sources.require "library.rb"
+Sources.require "misc.rb"
+Sources.require "plugin.rb"
 
 run_only_once :defines do
 	SERVER = "irc.omegadev.org"
@@ -36,6 +37,7 @@ class Roobot
 		add_plugin :General
 		add_plugin :Librarian
 		add_plugin :Rooval
+		add_plugin :UpdateCmd
 	end
 
 	def create_bot(id, host, server, port, nick, realname)
@@ -57,7 +59,7 @@ class Roobot
 	end
 
 	def add_plugin(id)
-		Sources << "plugins/" + id.to_s + ".rb"
+		Sources.require "plugins/" + id.to_s + ".rb"
 		plugin = Kernel.const_get(id).new
 		plugin.attach(@bots[:main])
 		@plugins[id] = plugin
@@ -92,8 +94,10 @@ class Roobot
 					id = @sockets[s]
 					bot = @bots[id]
 					bot.server_input line
+					destroy_bot bot if bot.dead?
 				end
 			end
+			Process.exit if @bots.empty?
 		end
 	end
 

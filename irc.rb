@@ -1,5 +1,5 @@
 
-# The IRCBot class, which talks to a server and holds the main event loop
+# The IRCBot class, which represents one connection to a server.
 class IRCBot
 	attr_reader :socket
 
@@ -15,9 +15,6 @@ class IRCBot
 		:action => "PRIVMSG %s :\001ACTION %s\001",
 		:notice => "NOTICE %s :%s",
 
-		:join => "JOIN %s",
-		:part => "PART %s",
-		
 		:quit => "QUIT",
 	}.each do |command, message|
 		define_method command do |*args|
@@ -32,34 +29,13 @@ class IRCBot
 		@port = port
 		@nick = nick
 		@realname = realname
+		@channels = Array.new
 
 		@log_input = false
 		@log_output = false
 
 		@raw_listeners = Array.new
 		@privmsg_listeners = Array.new
-	end
-
-	def add_listener(listener)
-		@raw_listeners << listener
-	end
-
-	def add_privmsg_listener(listener)
-		@privmsg_listeners << listener
-	end
-
-	def remove_listener(listener)
-		@raw_listeners.delete(listener)
-	end
-
-	def remove_privmsg_listener(listener)
-		@privmsg_listeners.delete(listener)
-	end
-
-	def check_for_death
-		if @raw_listeners.empty? and @privmsg_listens.empty?
-			Roobot.remove_bot @id
-		end
 	end
 
 	def connect
@@ -98,13 +74,37 @@ class IRCBot
 		return nil
 	end
 
-	def evaluate(s)
-		begin
-			return eval(s).to_s
-		rescue Exception => detail
-			return detail.message
-		end
-		return "Error"
+	def join(channel)
+		msg "JOIN #{channel}"
+		@channels << channel
+	end
+
+	def part(channel)
+		msg "PART #{channel}"
+		@channels.delete channel
+	end
+
+	def add_listener(listener)
+		@raw_listeners << listener
+	end
+
+	def add_privmsg_listener(listener)
+		@privmsg_listeners << listener
+	end
+
+	def remove_listener(listener)
+		@raw_listeners.delete(listener)
+	end
+
+	def remove_privmsg_listener(listener)
+		@privmsg_listeners.delete(listener)
+	end
+
+	def dead?
+		dead = false
+		dead = true if @channels.empty?
+		dead = true if @raw_listeners.empty? and @privmsg_listeners.empty?
+		return dead
 	end
 
 	def server_input(s)
@@ -136,28 +136,7 @@ class IRCBot
 				handled = listener.call nick, realname, host, source, message
 			end 
 		end
-
-=begin
-		case message
-		when /^>\s*update/i
-			responces = Sources.update ? @@update_success : @@update_fail
-			say responces.random
-=end
 	end
 
-	@@update_success = [
-		"Updated.",
-		"Now up to date.",
-		"Ahh! I missed that update. Thanks for noticing.",
-	]
-
-	@@update_fail = [
-		"Already at latest revision.",
-		"Already up to date.",
-		"Nothing new worth reporting, sir.",
-		"Don't touch me, I'm perfect.",
-	]
-
 end
-
 

@@ -10,6 +10,9 @@ class ActionList
 			match = regex.match(msg)
 			next if !match
 
+			# Yield if we have a match.
+			yield
+
 			args = base_args + match.captures
 
 			# Integer hack, change strings into integers if they match a regexp.

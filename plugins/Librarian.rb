@@ -1,8 +1,6 @@
 # Librarian
 # A Roobot plugin that serves books.
 
-# Roobot is an IRC bot framework written by Jamer.
-
 # Rather than code an ugly case statement for the Librarian's functions, we opt
 # for a more mathematical model. We describe how the different methods relate
 # to simple Regexps, and we ask Ruby to link them up for us.
@@ -12,7 +10,6 @@ class Librarian < RoobotPlugin
 	def privmsg_listener(nick, realname, host, source, message)
 		if message =~ /^>(.+)/i
 			command = $1.strip
-			Sources.update
 			return librarian_command source, nick, command
 		end
 		return false
@@ -34,30 +31,13 @@ class Librarian < RoobotPlugin
 	}
 
 	def librarian_command(source, nick, command)
-		log "LIBRARIAN #{nick} issued command \"#{command}\""
 		@source = source
 
-		@@actions.each do |fn, regex|
-			match = regex.match(command)
-			next if !match
-
-			args = [nick] + match.captures
-
-			# Integer hack, change strings into integers if they match a regexp.
-			args.map! do |arg|
-				if arg =~ /^\d+$/
-					arg = arg.to_i
-				end
-				arg
-			end
-
-			# Send the function only the number of args that it needs.
-			arg_count = method(fn).arity
-			send fn, *args.slice(0, arg_count)
-			return true
+		al = ActionList.new(@@actions, self)
+		return al.parse(command, [nick]) do
+			log "LIBRARIAN #{nick} issued command \"#{command}\""
+			Sources.update
 		end
-
-		return false
 	end
 
 	def say(message)

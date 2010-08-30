@@ -29,7 +29,19 @@ class Array
 end
 
 
+def stack_trace
+	begin
+		raise "Stack trace"
+	rescue Exception => e
+		puts e.backtrace
+	end
+end
 
+module Kernel
+	def `(cmd)
+		return "System calls are disabled."
+	end
+end
 
 def Kernel::system(*args)
 	return "Nice try."

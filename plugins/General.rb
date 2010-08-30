@@ -20,11 +20,12 @@ class General < RoobotPlugin
 	}
 
 	def general_command(source, nick, command)
-		log "GENERAL #{nick} issued command \"#{command}\""
 		@source = source
 
 		al = ActionList.new(@@actions, self)
-		return al.parse(command, [source])
+		return al.parse(command, [source]) do
+			log "GENERAL #{nick} issued command \"#{command}\""
+		end
 	end
 
 	def join(source, channel)
