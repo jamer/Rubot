@@ -1,13 +1,14 @@
 
+require 'socket'
+
 # The IRCBot class, which represents one connection to a server.
 class IRCBot
-	attr_reader :socket
 
 	# Lets create our IRC commands
 	{
 		:login => "USER %s %s %s :%s",
-		:nick => "NICK %s",
 		:umode => "MODE %s",
+		:nickname => "NICK %s",
 
 		:pong => "PONG :%s",
 
@@ -22,38 +23,55 @@ class IRCBot
 		end
 	end
 
-	def initialize(id, host, server, port, nick, realname)
+	attr_reader :socket
+	attr_reader :id, :server, :nick, :channels
+	attr_accessor :log_input, :log_output
+	attr_accessor :raw_listeners, :privmsg_listeners
+
+	def initialize(id, server, port, nick, username, realname)
 		@id = id
-		@host = host
 		@server = server
 		@port = port
 		@nick = nick
+		@username = username
 		@realname = realname
 		@channels = Array.new
 
-		@log_input = false
-		@log_output = false
+		@log_input = @log_output = true
 
 		@raw_listeners = Array.new
 		@privmsg_listeners = Array.new
+
+		@plugins = Hash.new
+		@disconnected = false
 	end
 
 	def connect
 		# Connect to the IRC server
 		@socket = TCPSocket.open @server, @port
-		login @nick, @server, @host, @realname
-		nick @nick
+		nickname @nick
+		login @username, "localhost", @server, @realname
 		umode @nick, "+B"
 	end
 
 	def disconnect
+		# Disconnects from the server. The IRCBot is left running.
+		return if @disconnected
+		@disconnected = true
 		quit
+		@socket.close
+	end
+
+	def destroy
+		# Destroys this IRCBot and frees the resources it was using.
+		disconnect
+		Bots.delete self
 	end
 
 	def msg(m)
 		# Send a message to the IRC server and print it to the screen
 		log "--> #{m}" if @log_output
-		@socket.puts "#{m}", 0
+		@socket.write "#{m}\r\n"
 	end
 
 	def say(recipient, message, action = :privmsg)
@@ -82,6 +100,25 @@ class IRCBot
 	def part(channel)
 		msg "PART #{channel}"
 		@channels.delete channel
+	end
+
+	def add_plugin(id)
+		if @plugins.include? id
+			raise "Plugin #{id} already loaded in bot #{id}"
+		end
+		Sources.load "plugins/" + id.to_s + ".rb"
+		plugin = Kernel.const_get(id).new
+		plugin.attach self
+		@plugins[id] = plugin
+	end
+
+	def remove_plugin(id)
+		if not @plugins.include? id
+			raise "Plugin #{id} not loaded in bot #{id}"
+		end
+		plugin = @plugins[id]
+		plugin.detach
+		@plugins.delete id
 	end
 
 	def add_listener(listener)
@@ -125,11 +162,11 @@ class IRCBot
 				source = nick
 			end
 
-			respond_to nick, realname, host, source, message
+			handle_privmsg nick, realname, host, source, message
 		end
 	end
 
-	def respond_to(nick, realname, host, source, message)
+	def handle_privmsg(nick, realname, host, source, message)
 		handled = false
 		@privmsg_listeners.each do |listener|
 			if not handled

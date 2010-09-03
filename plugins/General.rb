@@ -3,20 +3,19 @@
 class General < RoobotPlugin
 
 	def privmsg_listener(nick, realname, host, source, message)
-		if message =~ /^:(.+)/i
-			command = $1.strip
-			Sources.update
-			return general_command source, nick, command
-		end
-		return false
+		var = general_command source, nick, message
+		return var
 	end
 
 	@@actions = {
-		:join => /^join (#.+)$/i,
-		:part => /^part (#.+)$/i,
-		:part_this => /^part (#.+)$/i,
+		/^:join (#.+)/i => :join,
+		/^:part (#.+)/i => :part,
+		/^:leave (#.+)/i => :part,
+		/^:part$/i => :part_this,
+		/^:leave$/i => :part_this,
 
-		:speak => /^say (.+)/i,
+		/^tell (\S+) (.+)/i => :speak_to,
+		/^say (.+)/i => :speak,
 	}
 
 	def general_command(source, nick, command)
@@ -41,7 +40,11 @@ class General < RoobotPlugin
 	end
 
 	def speak(source, message)
-		say source, message
+		say source, message.proper_grammar!
+	end
+
+	def speak_to(source, target, message)
+		say target, message.proper_grammar!
 	end
 
 end

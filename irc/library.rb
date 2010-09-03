@@ -87,12 +87,12 @@ class User
 
 	def book=(book)
 		@book = book
-		@line = -@chunk
+		@line = 0
 	end
 
 	def read
+		resume
 		@line += @chunk
-	resume
 	end
 
 	def resume

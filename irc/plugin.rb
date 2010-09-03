@@ -27,5 +27,6 @@ class RoobotPlugin
 	def say(recipient, message)
 		@bot.say recipient, message
 	end
+
 end
 

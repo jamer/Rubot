@@ -64,6 +64,7 @@ def Process::exit!(*args)
 end
 
 def exit!(*args)
+	p Module.nesting
 	return "Nice try."
 end
 

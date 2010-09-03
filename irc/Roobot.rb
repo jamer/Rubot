@@ -1,0 +1,72 @@
+# Roobot
+# A simple, pluggable IRC bot framework.
+
+class Roobot
+	@SERVER = "irc.omegadev.org"
+	@PORT = 6667
+
+	@NICK = "LibAssistant"
+	@USERNAME = "apprentice"
+	@REALNAME = "Library Assistant"
+	@HOST = "localhost"
+	@CHANNEL = "#lib"
+
+	# Open the singleton.
+	class << self
+
+		def init
+			main = Bots.new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
+			main.add_plugin :General
+			main.add_plugin :Librarian
+			main.add_plugin :Rooval
+			main.add_plugin :UpdateCmd
+			main.join @CHANNEL
+		end
+
+		def evaluate(s)
+			begin
+				return eval(s).to_s
+			rescue Exception => detail
+				return detail.message
+			end
+			return "Error"
+		end
+
+		def handle_input()
+			# Just keep on trucking until we disconnect
+			sockets = Bots.sockets
+			while true
+				ready = select(sockets.keys + [$stdin], nil, nil, nil)
+				next if !ready
+				for s in ready[0]
+					return if s.eof
+					line = s.gets
+					if s == $stdin then
+						puts evaluate line
+					else
+						id = sockets[s]
+						bot = Bots[id]
+						bot.server_input line
+						destroy_bot bot if bot.dead?
+					end
+				end
+				Process.exit if Bots.empty?
+			end
+		end
+
+		def main_loop
+			# If we get an exception, then print it out and keep going
+			# We do NOT want to disconnect unexpectedly!
+			begin
+				handle_input
+			rescue Interrupt
+			rescue Exception => detail
+				puts detail.message
+				print detail.backtrace.join "\n"
+				retry
+			end
+		end
+
+	end
+end
+

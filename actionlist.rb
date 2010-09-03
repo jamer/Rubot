@@ -6,12 +6,13 @@ class ActionList
 	end
 
 	def parse(msg, base_args)
-		@actions.each do |fn, regex|
+		@actions.each do |regex, fn|
 			match = regex.match(msg)
 			next if !match
 
-			# Yield if we have a match.
-			yield
+			# A convenience -- update sources if we have a match
+			# This enssures we're running the latest version of our code
+			Sources.update
 
 			args = base_args + match.captures
 

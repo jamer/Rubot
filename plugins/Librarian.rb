@@ -16,22 +16,23 @@ class Librarian < RoobotPlugin
 	end
 
 	@@actions = {
-		:catalog => /^catalog$/i,
-		:open => /^open (.+)/i,
-		:read => /^read$/i,
-		:resume => /^resume$/i,
+		/^catalog$/i => :catalog,
+		/^open (.+)/i => :open,
+		/^read$/i => :read,
+		/^resume$/i => :resume,
 
-		:start_over => /^start over$/i,
-		:jump_to => /^jump to (\d+)$/i,
+		/^start over$/i => :start_over,
+		/^jump to (\d+)$/i => :jump_to,
 
-		:get_chunk => /^chunk$/i,
-		:set_chunk => /^set chunk (\d+)$/i,
+		/^chunk$/i => :get_chunk,
+		/^set chunk (\d+)$/i => :set_chunk,
 
-		:help => /^help$/i,
+		/^help$/i => :help,
 	}
 
 	def librarian_command(source, nick, command)
 		@source = source
+		@nick = nick
 
 		al = ActionList.new(@@actions, self)
 		return al.parse(command, [nick]) do
@@ -40,33 +41,37 @@ class Librarian < RoobotPlugin
 		end
 	end
 
-	def say(message)
-		@bot.say(@source, message)
+	def respond(message)
+		say @source, message
+	end
+
+	def private_respond(message)
+		say @nick, message
 	end
 
 	def open(nick, title)
 		book = Library.get_book title
 		if book.nil?
-			say "Book not found."
+			respond "Book not found."
 			return
 		end
-		say "Ahh, here we go. For some reason it was in the basement. " +
-				"Happy reading!"
+		respond "Ahh, here we go. For some reason it was in the basement. " +
+						"Happy reading!"
 		UserBase[nick].book = book
 	end
 
 	def catalog
-		Library.list_books.each { |line| say line }
+		Library.list_books.each { |line| respond line }
 	end
 
 	def read(nick)
 		user = UserBase[nick]
 		book = user.book
 		if book.nil?
-			say "You need to open a book before you can start reading."
+			respond "You need to open a book before you can start reading."
 			return
 		end
-		say user.read, nick
+		private_respond user.read
 	end
 
 	def resume(nick)
@@ -76,19 +81,17 @@ class Librarian < RoobotPlugin
 			say @@resume_needs_book.random
 			return
 		end
-		user.resume.each do |line|
-			say line, nick
-		end
+		user.resume.each { |line| private_respond line }
 	end
 
 	def start_over(nick)
 		user = UserBase[nick]
 		if user.book.nil?
-			say "Whaaatt? Go back to the beginning? " +
+			respond "Whaaatt? Go back to the beginning? " +
 				"You haven't even started reading a book yet."
 			return
 		end
-		say "Flipping back to the first page. " +
+		respond "Flipping back to the first page. " +
 			"You used to be at line #{user.line}."
 		user.line = 0
 	end
@@ -96,34 +99,34 @@ class Librarian < RoobotPlugin
 	def jump_to(nick)
 		user = UserBase[nick]
 		if user.book.nil?
-			say "Whaaatt? Search the book? " +
+			respond "Whaaatt? Search the book? " +
 				"You haven't even started reading a book yet."
 			return
 		end
-		say @@line_set_to.random % line
+		respond @@line_set_to.random % line
 		UserBase[nick].line = line
 	end
 
 	def get_chunk(nick)
 		chunk = UserBase[nick].chunk
-		say "For you, books will be delivered in #{chunk}-line chunks."
+		respond "For you, books will be delivered in #{chunk}-line chunks."
 	end
 
 	def set_chunk(nick, chunk)
 		if chunk == 0
-			say @@chunk_required.random
+			respond @@chunk_required.random
 			return
 		elsif chunk > 1000
 			chunk = 1000
-			say @@too_much_chunk.random % [chunk, chunk]
+			respond @@too_much_chunk.random % [chunk, chunk]
 		else
-			say @@new_chunk_size.random % chunk
+			respond @@new_chunk_size.random % chunk
 		end
 		UserBase[nick].chunk = chunk
 	end
 
 	def help
-		say @@help_msg
+		respond @@help_msg
 	end
 
 	@@resume_needs_book = [
