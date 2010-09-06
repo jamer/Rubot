@@ -1,4 +1,4 @@
-class Eval < RoobotPlugin
+class Eval < RubotPlugin
 
 	def privmsg(user, reply_to, message)
 		match = message.match(/^do (.+)/i)

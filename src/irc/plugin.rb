@@ -1,5 +1,5 @@
 
-class RoobotPlugin
+class RubotPlugin
 
 	def attach(client)
 		# Attach this plugin to a client. Client will now ask us to handle its

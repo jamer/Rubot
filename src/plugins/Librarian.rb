@@ -1,11 +1,11 @@
 # Librarian
-# A Roobot plugin that serves books.
+# A Rubot plugin that serves books.
 
 # Rather than code an ugly case statement for the Librarian's functions, we opt
 # for a more mathematical model. We describe how the different methods relate
 # to simple Regexps, and we ask Ruby to link them up for us.
 
-class Librarian < RoobotPlugin
+class Librarian < RubotPlugin
 
 	@@actions = {
 		/^catalog$/i => :catalog,

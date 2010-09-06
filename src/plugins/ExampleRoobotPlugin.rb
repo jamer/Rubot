@@ -1,5 +1,5 @@
 
-class ExampleRoobotPlugin < RoobotPlugin
+class ExampleRubotPlugin < RubotPlugin
 	# This is only an example plugin. Remove the following line or set
 	# to false to activate this plugin.
 	@innert = true
@@ -19,7 +19,7 @@ class ExampleRoobotPlugin < RoobotPlugin
 		server => "irc.omegadev.org"
 		port => 6667
 
-		nick = "RoobotPluginDemo"
+		nick = "RubotPluginDemo"
 		realname = "JustAPlugin"
 
 		# Channels can either be a String or an Array. Your choice.

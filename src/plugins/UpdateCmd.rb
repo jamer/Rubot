@@ -1,4 +1,4 @@
-class UpdateCmd < RoobotPlugin
+class UpdateCmd < RubotPlugin
 	def privmsg(user, reply_to, message)
 		if message =~ /^:update/i
 			responces = Sources.update ? @@update_success : @@update_fail

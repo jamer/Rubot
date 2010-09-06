@@ -1,7 +1,7 @@
-# Roobot
+# Rubot
 # A simple, pluggable IRC bot framework.
 
-class Roobot
+class Rubot
 	@SERVER = "irc.omegadev.org"
 	@PORT = 6667
 

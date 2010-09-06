@@ -1,6 +1,6 @@
 # General use IRC bot
 
-class General < RoobotPlugin
+class General < RubotPlugin
 
 	@@privmsg_actions = {
 		/^:join (#.+)/i => :join,
