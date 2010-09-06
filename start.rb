@@ -7,14 +7,16 @@ source_dirs = [
 	"irc",
 ]
 
-this_file = __FILE__
+
+# Load all our source files.
+this_file = "./" + __FILE__
 Sources.ignore this_file
 
 source_dirs.each do |dir| 
-	files = Dir.glob "#{dir}/*.rb"
-	Sources.load_all files
+	Sources.require_all Dir.glob "#{dir}/*.rb"
 end
 
+# Start the program.
 Roobot.init
 Roobot.main_loop
 

@@ -7,14 +7,6 @@
 
 class Librarian < RoobotPlugin
 
-	def privmsg_listener(nick, realname, host, source, message)
-		if message =~ /^>(.+)/i
-			command = $1.strip
-			return librarian_command source, nick, command
-		end
-		return false
-	end
-
 	@@actions = {
 		/^catalog$/i => :catalog,
 		/^open (.+)/i => :open,
@@ -30,19 +22,21 @@ class Librarian < RoobotPlugin
 		/^help$/i => :help,
 	}
 
-	def librarian_command(source, nick, command)
-		@source = source
-		@nick = nick
+	def privmsg(user, reply_to, message)
+		return false unless message =~ /^>(.+)/i
+		command = $1.strip
+		@reply_to = reply_to
+		@nick = user.nick
 
-		al = ActionList.new(@@actions, self)
-		return al.parse(command, [nick]) do
-			log "LIBRARIAN #{nick} issued command \"#{command}\""
+		al = ActionList.new @@actions, self
+		return al.parse(command, [user.nick]) do
+			log "LIBRARIAN #{user.nick} issued command \"#{command}\""
 			Sources.update
 		end
 	end
 
 	def respond(message)
-		say @source, message
+		say @reply_to, message
 	end
 
 	def private_respond(message)

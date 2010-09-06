@@ -2,12 +2,7 @@
 
 class General < RoobotPlugin
 
-	def privmsg_listener(nick, realname, host, source, message)
-		var = general_command source, nick, message
-		return var
-	end
-
-	@@actions = {
+	@@privmsg_actions = {
 		/^:join (#.+)/i => :join,
 		/^:part (#.+)/i => :part,
 		/^:leave (#.+)/i => :part,
@@ -18,25 +13,25 @@ class General < RoobotPlugin
 		/^say (.+)/i => :speak,
 	}
 
-	def general_command(source, nick, command)
+	def privmsg(user, source, message)
 		@source = source
 
-		al = ActionList.new(@@actions, self)
-		return al.parse(command, [source]) do
-			log "GENERAL #{nick} issued command \"#{command}\""
+		al = ActionList.new @@privmsg_actions, self
+		return al.parse(message, [source]) do
+			log "GENERAL #{user.nick} issued command \"#{command}\""
 		end
 	end
 
 	def join(source, channel)
-		@bot.join channel
+		@client.join channel
 	end
 
 	def part(source, channel)
-		@bot.part channel
+		@client.part channel
 	end
 
 	def part_this(source)
-		@bot.part source
+		@client.part source
 	end
 
 	def speak(source, message)
@@ -45,6 +40,21 @@ class General < RoobotPlugin
 
 	def speak_to(source, target, message)
 		say target, message.proper_grammar!
+	end
+
+	@@raw_actions = {
+		/^INVITE \S+ :(#.+)/i => :invite
+	}
+
+	def raw(user, message)
+		al = ActionList.new @@raw_actions, self
+		return al.parse(message, [user]) do
+			log "GENERAL #{nick} issued command \"#{command}\""
+		end
+	end
+
+	def invite(user, channel)
+		@client.join channel
 	end
 
 end

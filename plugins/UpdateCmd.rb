@@ -1,8 +1,8 @@
 class UpdateCmd < RoobotPlugin
-	def privmsg_listener(nick, realname, host, source, message)
-		if message =~ /^>\s*update/i
+	def privmsg(user, reply_to, message)
+		if message =~ /^:update/i
 			responces = Sources.update ? @@update_success : @@update_fail
-			say source, responces.random
+			say reply_to, responces.random
 			return true
 		end
 		return false

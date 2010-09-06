@@ -1,31 +1,25 @@
 
 class RoobotPlugin
 
-	def attach(bot)
-		# Attach this plugin to a bot.
-		@bot = bot
-
-		if self.class.method_defined? :listener
-			bot.add_listener method :listener
-			@have_listener = true
-		end
-		if self.class.method_defined? :privmsg_listener
-			bot.add_privmsg_listener method :privmsg_listener
-			@have_privmsg_listener = true
-		end
+	def attach(client)
+		# Attach this plugin to a client. Client will now ask us to handle its
+		# various incoming server messages.
+		@client = client
+		listeners.each { |l| client.listeners[l.to_sym].push method l }
 	end
 
 	def detach
-		if @have_listener
-			@bot.remove_listener method :listener
-		end
-		if @have_privmsg_listener
-			@bot.remove_privmsg_listener method :privmsg_listener
-		end
+		# Detatch from a client.
+		listeners.each { |l| client.listeners[l.to_sym].delete method l }
+	end
+
+	def listeners
+		return methods.select { |type| @client.listeners.include? type.to_sym }
 	end
 
 	def say(recipient, message)
-		@bot.say recipient, message
+		# Convenience method for saying something.
+		@client.say recipient, message
 	end
 
 end

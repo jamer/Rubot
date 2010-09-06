@@ -5,9 +5,9 @@ class Roobot
 	@SERVER = "irc.omegadev.org"
 	@PORT = 6667
 
-	@NICK = "LibAssistant"
+	@NICK = "Apprentice"
 	@USERNAME = "apprentice"
-	@REALNAME = "Library Assistant"
+	@REALNAME = "Library Apprentice"
 	@HOST = "localhost"
 	@CHANNEL = "#lib"
 
@@ -15,10 +15,10 @@ class Roobot
 	class << self
 
 		def init
-			main = Bots.new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
+			main = Clients.new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
 			main.add_plugin :General
 			main.add_plugin :Librarian
-			main.add_plugin :Rooval
+			main.add_plugin :Eval
 			main.add_plugin :UpdateCmd
 			main.join @CHANNEL
 		end
@@ -34,7 +34,7 @@ class Roobot
 
 		def handle_input()
 			# Just keep on trucking until we disconnect
-			sockets = Bots.sockets
+			sockets = Clients.sockets
 			while true
 				ready = select(sockets.keys + [$stdin], nil, nil, nil)
 				next if !ready
@@ -45,12 +45,12 @@ class Roobot
 						puts evaluate line
 					else
 						id = sockets[s]
-						bot = Bots[id]
-						bot.server_input line
-						destroy_bot bot if bot.dead?
+						client = Clients[id]
+						client.server_input line
+						Clients.delete client if client.dead?
 					end
 				end
-				Process.exit if Bots.empty?
+				p Process.exit! if Clients.empty?
 			end
 		end
 

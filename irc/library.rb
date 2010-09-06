@@ -91,8 +91,9 @@ class User
 	end
 
 	def read
-		resume
+		lines = resume
 		@line += @chunk
+		return lines
 	end
 
 	def resume
