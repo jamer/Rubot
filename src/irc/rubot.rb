@@ -15,7 +15,7 @@ class Rubot
 	class << self
 
 		def init
-			main = Clients.new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
+			main = Clients::new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
 			main.add_plugin :General
 			main.add_plugin :Librarian
 			main.add_plugin :Eval
@@ -34,7 +34,7 @@ class Rubot
 
 		def handle_input()
 			# Just keep on trucking until we disconnect
-			sockets = Clients.sockets
+			sockets = Clients::sockets
 			while true
 				ready = select(sockets.keys + [$stdin], nil, nil, nil)
 				next if !ready
@@ -47,10 +47,10 @@ class Rubot
 						id = sockets[s]
 						client = Clients[id]
 						client.server_input line
-						Clients.delete client if client.dead?
+						client.destroy if client.dead?
 					end
 				end
-				p Process.exit! if Clients.empty?
+				Process::exit if Clients::empty?
 			end
 		end
 

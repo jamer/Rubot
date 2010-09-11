@@ -32,7 +32,8 @@ class IRCClient
 	end
 
 	attr_reader :socket
-	attr_reader :id, :server, :nick, :channels, :plugins
+	attr_reader :id, :server, :nick, :plugins
+	attr_reader :channels, :users
 	attr_accessor :log_input, :log_output
 	attr_accessor :listeners
 
@@ -43,7 +44,9 @@ class IRCClient
 		@nick = nick
 		@username = username
 		@realname = realname
-		@channels = Array.new
+
+		@channels = Hash.new
+		@users = Hash.new
 
 		@log_input = @log_output = true
 
@@ -75,7 +78,7 @@ class IRCClient
 	def destroy
 		# Destroys this IRCClient and frees the resources it was using.
 		disconnect
-		Clients.delete self
+		Clients::delete self
 	end
 
 	def msg(m)
@@ -108,14 +111,15 @@ class IRCClient
 		return nil
 	end
 
-	def join(channel)
-		msg "JOIN #{channel}"
-		@channels << channel if not @channels.include? channel
+	def join(name)
+		msg "JOIN #{name}"
+		channel = Channel.new name
+		@channels[name] = channel if not @channels.include? name
 	end
 
-	def part(channel)
-		msg "PART #{channel}"
-		@channels.delete channel
+	def part(name)
+		msg "PART #{name}"
+		@channels.delete name
 	end
 
 	def add_plugin(id)
@@ -153,13 +157,21 @@ class IRCClient
 	@@inputs = {
 		/^PING :(.+)/i => :ping_input,
 		/^PRIVMSG (\S+) :(.+)/i => :privmsg_input,
+		/^NICK (.+)/ => :user_changed_nick,
+		/^353 \S+ = (#\S+) :(.+)/ => :names_list,
+		/^366 \S+ (#\S+)/ => :end_of_names_list,
 	}
 
 	def server_input(line)
 		log "<-- #{line}" if @log_input
+
+		# Scrape the user
 		nick, username, host = line.scrape! /^:(\S+?)!(\S+?)@(\S+?)\s/
-		user = UserId.new nick, username, host
+		user = Users::get nick, username, host
 		args = nick ? [user] : []
+
+		# Scrape the server
+		server = line.scrape! /^:(\S+) /
 
 		al = ActionList.new @@inputs, self
 		handled = al.parse line, args
@@ -179,5 +191,23 @@ class IRCClient
 		end
 		emit :privmsg, user, reply_to, message
 	end
+
+	def user_changed_nick(user, newnick)
+		@users[user].nick = newnick
+	end
+
+	def names_list(channel, names)
+		user_names = names.split(" ").map { |name| name.gsub "~&@%+", "" }
+		ch = @channels[channel]
+		# TODO -- Make a hash of User's from user_names
+		ch.new_users.merge! user_names
+	end
+
+	def end_of_names_list(channel)
+		ch = @channels[channel]
+		ch.users = ch.new_users
+		ch.new_users = Hash.new
+	end
+
 end
 

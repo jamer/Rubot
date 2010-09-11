@@ -8,11 +8,9 @@ class ActionList
 	def parse(msg, base_args)
 		@actions.each do |regex, fn|
 			match = regex.match(msg)
-			next if !match
+			next unless match
 
-			# A convenience -- update sources if we have a match
-			# This enssures we're running the latest version of our code
-			Sources.update
+			yield if block_given?
 
 			args = base_args + match.captures
 
@@ -24,9 +22,7 @@ class ActionList
 				arg
 			end
 
-			# Send the function only the number of args that it needs.
-			arg_count = @target.method(fn).arity
-			@target.send fn, *args.slice(0, arg_count)
+			@target.send fn, *args
 			return true
 		end
 		return false
