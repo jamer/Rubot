@@ -122,7 +122,7 @@ class IRCClient
 		if @plugins.include? id
 			raise "Plugin #{id} already loaded in client #{id}"
 		end
-		Sources.require "plugins/" + id.to_s + ".rb"
+		Sources.require "src/plugins/" + id.to_s + ".rb"
 		plugin = Kernel.const_get(id).new
 		plugin.attach self
 		@plugins[id] = plugin

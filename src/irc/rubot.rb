@@ -9,7 +9,7 @@ class Rubot
 	@USERNAME = "apprentice"
 	@REALNAME = "Library Apprentice"
 	@HOST = "localhost"
-	@CHANNEL = "#lib"
+	@CHANNEL = "#lobby"
 
 	# Open the singleton.
 	class << self
@@ -36,7 +36,7 @@ class Rubot
 			# Just keep on trucking until we disconnect
 			sockets = Clients.sockets
 			while true
-				ready = select(sockets.keys + [$stdin], nil, nil, nil)
+				ready = select(sockets.keys, nil, nil, nil)
 				next if !ready
 				for s in ready[0]
 					return if s.eof

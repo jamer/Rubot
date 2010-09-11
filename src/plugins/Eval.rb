@@ -4,6 +4,7 @@ class Eval < RubotPlugin
 		match = message.match(/^do (.+)/i)
 		return false if !match
 		expression = match[1]
+		puts "Hostname is #{user.host}"
 		if user.host == "Admin.omegadev.org" || user.host == "For.The.Win"
 			Sources.update
 			log "EVAL #{expression} from #{user.nick}!#{user.username}@#{user.host}"
@@ -17,7 +18,7 @@ class Eval < RubotPlugin
 		end
 
 		Thread.new do
-			sleep 10
+			sleep 2
 			thr.kill
 		end
 	end
@@ -30,6 +31,10 @@ class Eval < RubotPlugin
 		rescue SystemExit
 			return "Exitting is disabled."
 		end
+	end
+
+	def method_missing(symbol, *args)
+			@client.send symbol, *args
 	end
 
 end
