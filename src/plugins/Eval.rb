@@ -1,5 +1,9 @@
 class Eval < RubotPlugin
 
+	def initialize
+		@eval_timeout = 2
+	end
+
 	def privmsg(user, reply_to, message)
 		match = message.match(/^do (.+)/i)
 		return false if !match
@@ -7,7 +11,7 @@ class Eval < RubotPlugin
 		puts "Hostname is #{user.host}"
 		if user.host == "Admin.omegadev.org" || user.host == "For.The.Win"
 			Sources.update
-			log "EVAL #{expression} from #{user.nick}!#{user.username}@#{user.host}"
+			log "EVAL #{expression} from #{user.nick}!#{user.name}@#{user.host}"
 			eval_in_new_thread reply_to, expression
 		end
 	end
@@ -17,10 +21,7 @@ class Eval < RubotPlugin
 			say reply_to, evaluate(expr)
 		end
 
-		Thread.new do
-			sleep 2
-			thr.kill
-		end
+		thr.kill if not thr.join @eval_timeout
 	end
 
 	def evaluate(expr)

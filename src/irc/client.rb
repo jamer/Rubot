@@ -32,7 +32,8 @@ class IRCClient
 	end
 
 	attr_reader :socket
-	attr_reader :id, :server, :nick, :plugins
+	attr_reader :nick, :username, :realname
+	attr_reader :id, :server, :plugins
 	attr_reader :channels, :users
 	attr_accessor :log_input, :log_output
 	attr_accessor :listeners
@@ -132,6 +133,10 @@ class IRCClient
 		@plugins[id] = plugin
 	end
 
+	def add_plugins(ids)
+		ids.each { |plugin| add_plugin plugin }
+	end
+
 	def remove_plugin(id)
 		unless @plugins.include? id
 			raise "Plugin #{id} not loaded in client #{id}"
@@ -141,17 +146,19 @@ class IRCClient
 		@plugins.delete id
 	end
 
+	def remove_plugins(ids)
+		id.each { |plugin| remove_plugin plugin }
+	end
+
 	def dead?
 		dead = false
 		dead = true if @channels.empty?
-		dead = true if listeners.all? { |key, value| value.length == 0 }
+		dead = true if listeners.all? { |type, handlers| handlers.length == 0 }
 		return dead
 	end
 
 	def emit(signal, *params)
-		@listeners[signal].each do |listener|
-			return if listener.call *params
-		end
+		@listeners[signal].each { |l| l.call *params }
 	end
 
 	@@inputs = {
@@ -174,8 +181,8 @@ class IRCClient
 		server = line.scrape! /^:(\S+) /
 
 		al = ActionList.new @@inputs, self
-		handled = al.parse line, args
-		emit :raw, user, line if !handled
+		al.parse line, args
+		emit :raw, user, line
 	end
 
 	def ping_input(noise)
@@ -189,7 +196,7 @@ class IRCClient
 		else
 			reply_to = target
 		end
-		emit :privmsg, user, reply_to, message
+		emit :privmsg, user, reply_to, message.to_s
 	end
 
 	def user_changed_nick(user, newnick)
@@ -200,7 +207,11 @@ class IRCClient
 		user_names = names.split(" ").map { |name| name.gsub "~&@%+", "" }
 		ch = @channels[channel]
 		# TODO -- Make a hash of User's from user_names
-		ch.new_users.merge! user_names
+#		say "#cam", "User names found: " + user_names.join(" ")
+		known_users = user_names.select { |name| Users.include? name }
+#		users = user_names.map { |name| Users.get name }
+		p users
+#		ch.new_users.merge! user_names
 	end
 
 	def end_of_names_list(channel)

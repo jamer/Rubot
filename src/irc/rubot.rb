@@ -9,17 +9,15 @@ class Rubot
 	@USERNAME = "apprentice"
 	@REALNAME = "Library Apprentice"
 	@HOST = "localhost"
-	@CHANNEL = "#lobby"
+	@CHANNEL = "#lib"
 
 	# Open the singleton.
 	class << self
 
 		def init
 			main = Clients::new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
-			main.add_plugin :General
-			main.add_plugin :Librarian
-			main.add_plugin :Eval
-			main.add_plugin :UpdateCmd
+			main.add_plugins [:General, :Eval, :UpdateCmd]
+			main.add_plugins [:Say, :Bash, :Qdb, :Librarian]
 			main.join @CHANNEL
 		end
 
@@ -46,7 +44,7 @@ class Rubot
 					else
 						id = sockets[s]
 						client = Clients[id]
-						client.server_input line
+						client.server_input line.strip
 						client.destroy if client.dead?
 					end
 				end
