@@ -10,7 +10,7 @@ class Lonely < RubotPlugin
 	]
 
 	def initialize
-		@chance = 1
+		@chance = 2
 	end
 
 	def privmsg(user, reply_to, message)

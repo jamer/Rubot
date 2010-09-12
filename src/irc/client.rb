@@ -200,7 +200,7 @@ class IRCClient
 	end
 
 	def user_changed_nick(user, newnick)
-		@users[user].nick = newnick
+#		@users[user].nick = newnick
 	end
 
 	def names_list(channel, names)

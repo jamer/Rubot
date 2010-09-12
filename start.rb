@@ -14,6 +14,5 @@ source_dirs.each do |dir|
 end
 
 # Start the program.
-Rubot.init
-Rubot.main_loop
+Rubot.new.main_loop
 

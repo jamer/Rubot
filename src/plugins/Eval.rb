@@ -1,4 +1,5 @@
 class Eval < RubotPlugin
+	include Math
 
 	def initialize
 		@eval_timeout = 2
@@ -8,10 +9,10 @@ class Eval < RubotPlugin
 		match = message.match(/^do (.+)/i)
 		return false if !match
 		expression = match[1]
-		puts "Hostname is #{user.host}"
-		if user.host == "Admin.omegadev.org" || user.host == "For.The.Win"
+		if user.host == "Admin.omegadev.org" || user.host == "For.The.Win" || 
+				user.host == "n0v4.com"
 			Sources.update
-			log "EVAL #{expression} from #{user.nick}!#{user.name}@#{user.host}"
+#			log "EVAL #{expression} from #{user.nick}!#{user.name}@#{user.host}"
 			eval_in_new_thread reply_to, expression
 		end
 	end
