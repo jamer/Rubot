@@ -14,7 +14,7 @@ class Rubot
 
 		main = Clients::new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
 		main.add_plugins [:General, :Eval, :UpdateCmd]
-		main.add_plugins [:Say, :Weather, :Bash, :Qdb, :Librarian]
+		main.add_plugins [:Say, :Weather, :Bash, :Qdb, :Urban, :Librarian]
 		main.join @CHANNEL
 	end
 
