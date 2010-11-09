@@ -13,7 +13,7 @@ class String
 		# If the regex is found inside the string, it is removed.
 		return nil unless (m = match regex)
 		gsub! regex, ""
-		return mtch.captures
+		return m.captures
 	end
 
 	def capitalize_each_word!
