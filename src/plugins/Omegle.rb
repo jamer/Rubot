@@ -103,7 +103,7 @@ class Omegle < RubotPlugin
 	def disconnect reply_to
 		@sid = nil
 		post "disconnect", true
-		say reply_to, "disconnected", :action
+		say reply_to, "You are now disconnected"
 	end
 
 
@@ -125,13 +125,10 @@ class Omegle < RubotPlugin
 				init_omegle reply_to
 			end
 			return true
-		elsif @t and @t.alive?
-			puts "Message is #{message}"
-			if message == ":disconnect"
-				disconnect reply_to
-			else
-				send reply_to, message
-			end
+		elsif @t and @t.alive? and message == ":disconnect"
+			disconnect reply_to
+		elsif @t and @t.alive? and message =~ /^-/
+			send reply_to, message[1..-1]
 		end
 
 		return false
