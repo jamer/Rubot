@@ -6,7 +6,7 @@ main:
   address: irc.n0v4.com
   port: 6669
   channels:
-    - bot
+    - lobby
 
   plugins:
     - Omegle

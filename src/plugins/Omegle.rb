@@ -71,10 +71,11 @@ class Omegle < RubotPlugin
 #			say reply_to, "Waiting for stranger"
 		when "connected" then
 			say reply_to, "has connected", :action
+#			say reply_to, "Giving message about being on IRC..."
 #			send reply_to, "" +
 #				"Hello stranger! Instead of just one stranger, you've been connected " +
-#				"to an IRC chat room of tons of strangers! They see everything you " +
-#				"say and you see everything they say. Have fun!"
+#				"to the lobby of the n0v4 IRC network with of tons of strangers! " +
+#				"They see everything you say and you see everything they say. Have fun!"
 		when "typing" then
 			say reply_to, "is typing", :action
 		when "gotMessage" then
@@ -85,6 +86,8 @@ class Omegle < RubotPlugin
 		when "technical reasons" then
 			say reply_to, "Omegle has put up a captcha ;_;"
 			@sid = nil
+		else
+			say reply_to, "Unknown event '#{type}'... This is probably bad!"
 		end
 	end
 
@@ -101,6 +104,9 @@ class Omegle < RubotPlugin
 	end
 
 	def disconnect reply_to
+		if @t and @t.alive?
+			@t.kill
+		end
 		@sid = nil
 		post "disconnect", true
 		say reply_to, "You are now disconnected"
@@ -127,8 +133,10 @@ class Omegle < RubotPlugin
 			return true
 		elsif @t and @t.alive? and message == ":disconnect"
 			disconnect reply_to
+			return true
 		elsif @t and @t.alive? and message =~ /^-/
 			send reply_to, message[1..-1]
+			return true
 		end
 
 		return false
