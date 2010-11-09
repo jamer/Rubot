@@ -1,5 +1,5 @@
 main:
-  nick: Omegle
+  nick: Stranger
   username: stranger
   realname: Omegle Bot
 
@@ -9,5 +9,5 @@ main:
     - bot
 
   plugins:
-    - Weather
+    - Omegle
 

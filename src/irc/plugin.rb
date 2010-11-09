@@ -17,9 +17,9 @@ class RubotPlugin
 		return methods.select { |type| @client.listeners.include? type.to_sym }
 	end
 
-	def say(recipient, message)
+	def say(recipient, message, action = :privmsg)
 		# Convenience method for saying something.
-		@client.say recipient, message
+		@client.say recipient, message, action
 	end
 
 end
