@@ -14,5 +14,6 @@ source_dirs.each do |dir|
 end
 
 # Start the program.
-Rubot.new.main_loop
+bot = Rubot.new ARGV
+bot.main_loop
 

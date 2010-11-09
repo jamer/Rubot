@@ -1,0 +1,13 @@
+main:
+  nick: Omegle
+  username: stranger
+  realname: Omegle Bot
+
+  address: irc.n0v4.com
+  port: 6669
+  channels:
+    - bot
+
+  plugins:
+    - Weather
+

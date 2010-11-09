@@ -1,8 +1,40 @@
 # Rubot
 # A simple, pluggable IRC bot framework.
 
+require 'yaml'
+
 class Rubot
-	def initialize
+	def initialize config_files
+		config_files.each do |file|
+			load_config_file file
+		end
+
+	end
+
+	def load_config_file file
+		puts "Init config #{file}"
+		client_cfgs = YAML::load_file file
+
+		client_cfgs.each do |id, prop_list|
+			init_client id.to_sym, prop_list
+		end
+	end
+
+	def init_client id, prop_list
+		props = %w(address port nick username realname).map {|key|
+			prop_list[key]
+		}
+		client = Clients::new id, *props
+
+		prop_list["plugins"].each do |plugin|
+			client.add_plugin plugin
+		end
+		prop_list["channels"].each do |channel|
+			client.join "##{channel}"
+		end
+	end
+
+	def whatever
 		@SERVER = "irc.n0v4.org"
 		@PORT = 6667
 
@@ -18,7 +50,7 @@ class Rubot
 		main.join @CHANNEL
 	end
 
-	def evaluate(s)
+	def evaluate s
 		begin
 			return eval(s).to_s
 		rescue Exception => detail
@@ -27,18 +59,24 @@ class Rubot
 		return "Error"
 	end
 
-	def handle_input()
+	def handle_input
 		# Just keep on trucking until we disconnect
 		while true
+			if Clients::empty?
+				puts "Clients list empty, quitting"
+				Process::exit
+			end
 			ready = select(Clients::sockets.keys, nil, nil, nil)
 			next if !ready
 			ready[0].each { |sock| handle_socket sock }
-			Process::exit if Clients::empty?
 		end
 	end
 
-	def handle_socket(sock)
-		Process::exit if sock.eof
+	def handle_socket sock
+		if sock.eof
+			puts "Socket #{sock.to_s} reached EOF, quitting"
+			Process::exit
+		end
 		line = sock.gets
 		if sock == $stdin then
 			puts evaluate line
@@ -56,9 +94,11 @@ class Rubot
 		begin
 			handle_input
 		rescue Interrupt
+		rescue SystemExit
 		rescue Exception => detail
-			puts detail.message
-			print detail.backtrace.join "\n"
+			puts "Exception caught - #{detail.class}(\"#{detail.message}\")"
+			puts detail.backtrace.join "\n"
+			puts
 			retry
 		end
 	end
