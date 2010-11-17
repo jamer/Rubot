@@ -77,7 +77,8 @@ class Omegle < RubotPlugin
 #				"to the lobby of the n0v4 IRC network with of tons of strangers! " +
 #				"They see everything you say and you see everything they say. Have fun!"
 		when "typing" then
-			say reply_to, "is typing", :action
+#			say reply_to, "is typing", :action
+		when "stoppedTyping" then
 		when "gotMessage" then
 			say reply_to, "#{msg}"
 		when "strangerDisconnected" then
