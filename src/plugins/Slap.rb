@@ -1,6 +1,14 @@
 class Slap < RubotPlugin
 	def initialize
-		@fish = "4r7a8i9n3b2o12w 6t4r7o8u9t3"
+		@fish = [
+			"a large 4r7a8i9n3b2o12w 6t4r7o8u9t3",
+			"cookies",
+			"cake",
+			"a pink Macintosh",
+			"a tire iron",
+			"a series of tubes called the Internets",
+			"a hobbit",
+		]
 	end
 
 	def privmsg(user, reply_to, message)
@@ -13,7 +21,7 @@ class Slap < RubotPlugin
 		target = match[1]
 		target = "itself" if target.downcase == @client.nick.downcase
 		say reply_to,
-				"slaps #{target} around a bit with a large #{@fish}.", :action
+				"slaps #{target} around a bit with #{@fish.choice}.", :action
 
 		flinch reply_to if %w(himself herself itself).include? target
 	end

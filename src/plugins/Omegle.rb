@@ -125,7 +125,7 @@ class Omegle < RubotPlugin
 	end
 
 	def privmsg user, reply_to, message
-		if message == ":omegle"
+		if message == ":omegle" or message == ":connect"
 			if @t and @t.alive?
 				say reply_to, "Stranger already connected"
 			else
