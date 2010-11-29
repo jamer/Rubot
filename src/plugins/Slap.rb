@@ -17,7 +17,7 @@ class Slap < RubotPlugin
 	end
 
 	def slap(reply_to, message)
-		return unless match = message.match(/^slap (.+)/i)
+		return unless match = message.match(/^slap\W+(.+)/i)
 		target = match[1]
 		target = "itself" if target.downcase == @client.nick.downcase
 		say reply_to,

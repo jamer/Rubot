@@ -34,22 +34,6 @@ class Rubot
 		end
 	end
 
-	def whatever
-		@SERVER = "irc.n0v4.org"
-		@PORT = 6667
-
-		@NICK = "Gandalph"
-		@USERNAME = "wizard"
-		@REALNAME = "Gandalph the Grey"
-		@HOST = "localhost"
-		@CHANNEL = "#libby"
-
-		main = Clients::new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
-		main.add_plugins [:General, :Eval, :UpdateCmd]
-		main.add_plugins [:Say, :Weather, :Bash, :Qdb, :Urban, :Librarian]
-		main.join @CHANNEL
-	end
-
 	def evaluate s
 		begin
 			return eval(s).to_s
