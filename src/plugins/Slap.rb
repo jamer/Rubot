@@ -2,8 +2,8 @@ class Slap < RubotPlugin
 	def initialize
 		@fish = [
 			"a large 4r7a8i9n3b2o12w 6t4r7o8u9t3",
-			"cookies",
-			"cake",
+			"some freshly baked home-made cookies :3",
+			"some cake",
 			"a pink Macintosh",
 			"a tire iron",
 			"a series of tubes called the Internets",
@@ -19,7 +19,7 @@ class Slap < RubotPlugin
 	def slap(reply_to, message)
 		return unless match = message.match(/^slap\W+(.+)/i)
 		target = match[1]
-		target = "itself" if target.downcase == @client.nick.downcase
+		target = "itself" if target.downcase.include? @client.nick.downcase
 		say reply_to,
 				"slaps #{target} around a bit with #{@fish.choice}.", :action
 
