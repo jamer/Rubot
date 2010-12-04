@@ -14,6 +14,12 @@ class Tweet < RubotPlugin
 		
 		@coder = HTMLEntities.new
 		
+		@h = {
+			"User-Agent" => "Mozilla/5.0 (Ruby-Twitter; +https://github.com/savetheinternet/Rubot-Twitter)",
+			"Accept-Language" => "en-US,en;q=0.8",
+			"Referer" => "https://github.com/savetheinternet/Rubot-Twitter"
+		}
+		
 		Thread.new {
 			loop {
 				do_tweets
@@ -45,7 +51,7 @@ class Tweet < RubotPlugin
 	
 	def check_new_tweets(username, since_id)
 		Net::HTTP.new("search.twitter.com", 80).start do |http|
-			res = http.get "/search.json?lang=en&from=#{username}&since_id=#{since_id}"
+			res = http.get "/search.json?lang=en&from=#{username}&since_id=#{since_id}", @h
 			
 			timeline = JSON.parse res.body
 			
