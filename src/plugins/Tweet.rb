@@ -38,7 +38,12 @@ class Tweet < RubotPlugin
 	
 	def do_tweets
 		username = @accounts.keys[@index]
-		@accounts[username] = check_new_tweets(username.to_s, @accounts[username])
+		tmp = check_new_tweets(username.to_s, @accounts[username])
+		
+		# Fix bug
+		if @accounts.include? username then
+			@accounts[username] = tmp
+		end
 		
 		@index+=1
 		if @index >= @accounts.count then
