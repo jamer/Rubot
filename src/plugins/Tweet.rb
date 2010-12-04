@@ -52,7 +52,6 @@ class Tweet < RubotPlugin
 	def check_new_tweets(username, since_id)
 		Net::HTTP.new("search.twitter.com", 80).start do |http|
 			res = http.get "/search.json?lang=en&from=#{username}&since_id=#{since_id}", @h
-			p res
 			
 			timeline = JSON.parse res.body
 			
@@ -76,9 +75,12 @@ class Tweet < RubotPlugin
 	end
 	
 	def privmsg(user, reply_to, message)
-		if message =~ /!follow ([A-Za-z0-9]+)/ then
+		if message =~ /^!follow ([A-Za-z0-9]+)$/ then
 			@accounts[$1] = 0
 			say reply_to, "Following \002#{$1}\002."
+		end
+		if message =~ /^!following$/ then
+			say reply_to, "Following: \002#{@accounts.keys.join ", "}\002."
 		end
 	end
 	
