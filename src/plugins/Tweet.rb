@@ -168,7 +168,7 @@ class Tweet < RubotPlugin
 	end
 	
 	def privmsg(user, reply_to, message)
-		if message =~ /^!follow ([A-Za-z0-9]+)$/ then
+		if message =~ /^!follow ([A-Za-z0-9_]+)$/ then
 			username = $1.to_sym
 			if @accounts.include? username then
 				say reply_to, "I'm already following \002#{$1}\002."
@@ -176,7 +176,7 @@ class Tweet < RubotPlugin
 				@accounts[username] = 0
 				say reply_to, "Following \002#{$1}\002."
 			end
-		elsif message =~ /^!unfollow ([A-Za-z0-9]+)$/ then
+		elsif message =~ /^!unfollow ([A-Za-z0-9_]+)$/ then
 			username = $1.to_sym
 			if @accounts.include? username then
 				@accounts.delete username
@@ -190,11 +190,11 @@ class Tweet < RubotPlugin
 			@accounts.each do |account, id|
 				say reply_to, "\002#{account}\002: #{id}."
 			end
-		elsif message =~ /^!info ([A-Za-z0-9]+)$/ then
+		elsif message =~ /^!info ([A-Za-z0-9_]+)$/ then
 			do_info reply_to, $1
-		elsif message =~ /^!latest ([A-Za-z0-9]+)$/ then
+		elsif message =~ /^!latest ([A-Za-z0-9_]+)$/ then
 			do_latest reply_to, $1, 1
-		elsif message =~ /^!latest (\d+) ([A-Za-z0-9]+)$/ then
+		elsif message =~ /^!latest (\d+) ([A-Za-z0-9_]+)$/ then
 			do_latest reply_to, $2, $1
 		elsif message =~ /^!search (.+)$/ then
 			say reply_to, search_tweets(reply_to, (URI.escape $1), "recent")
