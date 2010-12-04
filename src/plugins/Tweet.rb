@@ -2,9 +2,6 @@ require 'json'
 require 'net/http'
 require 'uri'
 require 'htmlentities'
-require 'time'
-
-# http://search.twitter.com/search.json?lang=en&from={user}
 
 class Tweet < RubotPlugin
 	def initialize
@@ -23,7 +20,7 @@ class Tweet < RubotPlugin
 		Thread.new {
 			loop {
 				do_tweets
-				sleep 1
+				sleep 5
 			}
 		}
 		
@@ -49,14 +46,21 @@ class Tweet < RubotPlugin
 		end
 	end
 	
-	def announce_tweets(tweets)
+	def announce_tweets(tweets, channel=nil)
 		tweets.each do |tweet|
-			on_new_twitter_message @coder.decode(tweet['from_user']), @coder.decode(tweet['text'].split("\n").join " ")
+			from = @coder.decode(tweet['from_user'])
+			message = @coder.decode(tweet['text'].split("\n").join " ")
+			
+			if channel.nil? then
+				@needs_to_be_said.push "\002[#{from}]\002 #{message}"
+			else
+				say channel, "\002[#{from}]\002 #{message}"
+			end
 		end
 	end
 	
-	def search_tweets(query)
-		uri = "/search.json?lang=en&q=#{query}&rpp=5"
+	def search_tweets(channel, query, type)
+		uri = "/search.json?lang=en&q=#{query}&rpp=5&result_type=#{type}"
 		
 		Net::HTTP.new("search.twitter.com", 80).start do |http|
 			res = http.get uri, @h
@@ -68,19 +72,74 @@ class Tweet < RubotPlugin
 			if timeline['results'].empty? then
 				return "No results."
 			end
-			announce_tweets timeline['results'].reverse
+			announce_tweets timeline['results'].reverse, channel
 		end
 		nil
 	end
 	
-	def check_new_tweets(username, since_id)
-		if since_id < 0 then
-			# Latest
-			uri = "/search.json?lang=en&from=#{username}&rpp=1"
-		else
-			# Tweets after given ID
-			uri = "/search.json?lang=en&from=#{username}&since_id=#{since_id}"
+	def format_number(n)
+		return n.to_s.reverse.gsub(/...(?=.)/, '\&,').reverse
+	end
+	
+	def do_info(channel, username)
+		uri = "/1/users/show/#{username}.json"
+		Net::HTTP.new("api.twitter.com", 80).start do |http|
+			res = http.get uri, @h
+			info = JSON.parse res.body
+			
+			@info = [
+				["Name", "name"],
+				["Description", "description"],
+				["URL", "url"],
+				["Created", "created_at"],
+				["Followers", "followers_count"]
+			]
+			
+			if info.include? "error" then
+				say channel, "\002Error\002: #{info["error"]}"
+				return
+			end
+			
+			@info.each do |x|
+				name = x[0]
+				key = x[1]
+				
+				if info.include? key then
+					if info[key].class == Fixnum then
+						info[key] = format_number info[key]
+					end
+					if !info[key].nil? && !info[key].empty? then
+						say channel, "\002#{name}\002: #{info[key]}"
+					end
+				end
+			end
 		end
+	end
+	
+	def do_latest(channel, username, count)
+		uri = "/search.json?lang=en&from=#{username}&rpp=#{count}"
+		Net::HTTP.new("search.twitter.com", 80).start do |http|
+			res = http.get uri, @h
+			
+			timeline = JSON.parse res.body
+			
+			# Show tweets in reverse order. Oldest first.
+			if not timeline.include? 'results' then
+				@needs_to_be_said.push "\002Error\002: [#{uri}] #{timeline.to_s}"
+				return since_id
+			end
+			
+			if timeline['results'].empty? then
+				return "No tweets."
+			end
+			tweets = timeline['results'].reverse
+			
+			announce_tweets tweets, channel
+		end
+	end
+	
+	def check_new_tweets(username, since_id)
+		uri = "/search.json?lang=en&from=#{username}&since_id=#{since_id}"
 		
 		Net::HTTP.new("search.twitter.com", 80).start do |http|
 			res = http.get uri, @h
@@ -127,15 +186,21 @@ class Tweet < RubotPlugin
 			end
 		elsif message =~ /^!following$/ then
 			say reply_to, "Following: \002#{@accounts.keys.join ", "}\002."
+		elsif message =~ /^!debug$/ then
+			@accounts.each do |account, id|
+				say reply_to, "\002#{account}\002: #{id}."
+			end
+		elsif message =~ /^!info ([A-Za-z0-9]+)$/ then
+			do_info reply_to, $1
 		elsif message =~ /^!latest ([A-Za-z0-9]+)$/ then
-			check_new_tweets $1, -1
+			do_latest reply_to, $1, 1
+		elsif message =~ /^!latest (\d+) ([A-Za-z0-9]+)$/ then
+			do_latest reply_to, $2, $1
 		elsif message =~ /^!search (.+)$/ then
-			say reply_to, search_tweets(URI.escape $1)
+			say reply_to, search_tweets(reply_to, (URI.escape $1), "recent")
+		elsif message =~ /^!popular (.+)$/ then
+			say reply_to, search_tweets(reply_to, (URI.escape $1), "popular")
 		end
-	end
-	
-	def on_new_twitter_message(from, message)
-		@needs_to_be_said.push "\002[#{from}]\002 #{message}"
 	end
 end
 
