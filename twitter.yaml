@@ -9,5 +9,5 @@ main:
     - Rubot-Twitter
 
   plugins:
-    - Twitter
+    - Tweet
 
