@@ -51,7 +51,7 @@ class Tweet < RubotPlugin
 	
 	def check_new_tweets(username, since_id)
 		Net::HTTP.new("search.twitter.com", 80).start do |http|
-			res = http.get "/search.json?lang=en&from=#{username}&since_id=#{since_id}", @h
+			p res = http.get "/search.json?lang=en&from=#{username}&since_id=#{since_id}", @h
 			
 			timeline = JSON.parse res.body
 			
