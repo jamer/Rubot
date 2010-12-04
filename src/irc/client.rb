@@ -15,7 +15,7 @@ class IRCClient
 	# Lets create our IRC commands
 	{
 		:login => "USER %s %s %s :%s",
-		:umode => "MODE %s",
+		:umode => "MODE %s %s",
 		:nickname => "NICK %s",
 
 		:pong => "PONG :%s",
