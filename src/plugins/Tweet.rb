@@ -88,7 +88,9 @@ class Tweet < RubotPlugin
 			info = JSON.parse res.body
 			
 			@info = [
+				["Screen name", "screen_name"],
 				["Name", "name"],
+				["Location", "location"],
 				["Description", "description"],
 				["URL", "url"],
 				["Created", "created_at"],
@@ -109,7 +111,7 @@ class Tweet < RubotPlugin
 						info[key] = format_number info[key]
 					end
 					if !info[key].nil? && !info[key].empty? then
-						say channel, "\002#{name}\002: #{info[key]}"
+						say channel, "\002#{name}\002: #{info[key].split("\n").join " "}"
 					end
 				end
 			end
