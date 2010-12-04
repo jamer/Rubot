@@ -15,21 +15,21 @@ class Tweet < RubotPlugin
 		@coder = HTMLEntities.new
 		
 		Thread.new {
-			while true
+			loop {
 				do_tweets
 				sleep 1
-			end
+			}
 		}
 		
 		Thread.new {
-			while true
+			loop {
 				@needs_to_be_said.each do |line|
 					@client.channels.keys.each { |channel| say channel, line }
 					@needs_to_be_said.delete line
 					sleep 0.3
 				end
 				sleep 1
-			end
+			}
 		}
 	end
 	
