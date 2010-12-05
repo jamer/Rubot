@@ -143,6 +143,8 @@ class Tweet < RubotPlugin
 			
 			announce_tweets tweets, channel
 		end
+		
+		nil
 	end
 	
 	def check_new_tweets(username, since_id)
