@@ -200,9 +200,9 @@ class Tweet < RubotPlugin
 		elsif message =~ /^!info ([A-Za-z0-9_]+)$/ then
 			do_info reply_to, $1
 		elsif message =~ /^!latest ([A-Za-z0-9_]+)$/ then
-			do_latest reply_to, $1, 1
+			say reply_to, do_latest(reply_to, $1, 1)
 		elsif message =~ /^!latest (\d+) ([A-Za-z0-9_]+)$/ then
-			do_latest reply_to, $2, $1
+			say reply_to, do_latest(reply_to, $2, $1)
 		elsif message =~ /^!search (.+)$/ then
 			say reply_to, search_tweets(reply_to, (URI.escape $1), "recent")
 		elsif message =~ /^!popular (.+)$/ then
