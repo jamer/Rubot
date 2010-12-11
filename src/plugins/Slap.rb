@@ -1,4 +1,8 @@
 class Slap < RubotPlugin
+	# Slap people around with some fish. Warning: Some of the rare and unique
+	# specimens of fish that we've collected may not resemble any fish you are
+	# familiar with. But take my word, they *are* fish.
+
 	def initialize
 		@fish = [
 			"a large 4r7a8i9n3b2o12w 6t4r7o8u9t3",
@@ -8,6 +12,8 @@ class Slap < RubotPlugin
 			"a tire iron",
 			"a series of tubes called the Internets",
 			"a hobbit",
+			"a direct business cable ethernet line",
+			"an oversized tiger shark",
 		]
 	end
 
