@@ -14,6 +14,7 @@ class Slap < RubotPlugin
 			"a hobbit",
 			"a direct business cable ethernet line",
 			"an oversized tiger shark",
+			"a CrunchBang Linux .iso file",
 		]
 	end
 
