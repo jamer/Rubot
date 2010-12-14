@@ -68,7 +68,7 @@ end
 
 
 
-class User
+class LibUser
 	attr_accessor :line
 	attr_accessor :chunk
 
@@ -110,7 +110,7 @@ class UserBase
 
 		def ensure_registered(name)
 			if !@@users.include? name
-				@@users[name] = User.new name
+				@@users[name] = LibUser.new name
 			end
 		end
 
