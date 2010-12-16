@@ -7,6 +7,7 @@ main:
   port: 6669
   channels:
     - omegle
+    - bots
 
   plugins:
     - Omegle

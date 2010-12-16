@@ -44,6 +44,8 @@ class Slap < RubotPlugin
 			"one thousand pascals",
 			"a tweet from Twitter",
 			"an experimental window manager",
+			"a trombone",
+			"a simili",
 		]
 	end
 
