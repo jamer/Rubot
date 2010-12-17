@@ -11,7 +11,7 @@ class Laugh < RubotPlugin
 		/laugh\s*(\d+\.?\d?)/i => :laugh,
 	}
 
-	def privmsg(user, source, message)
+	def privmsg user, source, message
 		@source = source
 
 		al = ActionList.new @@privmsg_actions, self
@@ -27,10 +27,8 @@ class Laugh < RubotPlugin
 	# to the end of it. Maximum number of times 25 (plus the O- if we're a
 	# decimal).
 	def laugh source, times
-		times = times.to_f
-		decimal = times.floor != times
-		times = times.to_i
-		times = 25 if times > 25
+		decimal = times.to_f != times.to_i
+		times = [times.to_i, 25].min
 		word = first_char + "OL" * times
 		if decimal
 			word += "O-"
