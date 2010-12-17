@@ -20,15 +20,12 @@ class Laugh < RubotPlugin
 	# to the end of it. Maximum length of laugh is 25 times (plus the O- if
 	# we're a decimal).
 	def laugh source, times
-		times = times.to_s
-		jack = times.include? "."
-		if jack
-			times = times.sub /\..*/, ""
-		end
+		times = times.to_f
+		decimal = times.floor != times
 		times = times.to_i
 		times = 25 if times > 25
 		word = first_char + "OL" * times
-		if jack
+		if decimal
 			word += "O-"
 		end
 		say source, word
