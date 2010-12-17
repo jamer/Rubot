@@ -3,7 +3,6 @@ class Laugh < RubotPlugin
 
 	@@privmsg_actions = {
 		/laugh\s*(\d+\.?\d?)/i => :laugh,
-#		/^laughs (\d+)/i => :laughs,
 	}
 
 	def privmsg(user, source, message)
@@ -33,10 +32,6 @@ class Laugh < RubotPlugin
 			word += "O-"
 		end
 		say source, word
-	end
-
-	def laughs source, times
-		
 	end
 end
 
