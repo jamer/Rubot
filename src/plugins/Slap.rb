@@ -1,11 +1,13 @@
 class Slap < RubotPlugin
 	# Slap people around with some fish. Warning: Some of the rare and unique
 	# specimens of fish that we've collected may not resemble any fish you are
-	# familiar with. But take my word, they *are* fish.
+	# familiar with. But take my word, they *are* fish. :)
 
 	def initialize
 		@fish = [
 			"a large 4r7a8i9n3b2o12w 6t4r7o8u9t3",
+			"a large trout",
+			"a very large halibut illustrating the futility in using trout as they are limmited in size"
 			"some freshly baked home-made cookies :3",
 			"some cake",
 			"a pink Macintosh",
@@ -46,6 +48,28 @@ class Slap < RubotPlugin
 			"an experimental window manager",
 			"a trombone",
 			"a simili",
+			"a rebased git branch",
+			"a configuration file",
+			"a ludicrously long run-on sentence that just keeps going and going and going (imagine the run-on sentences contained within the essays of the Energizer bunny if he were an English professor)",
+			"a waifu pillow",
+			"an uptime statistic",
+			"a lonely B-rated movie",
+			"an arithmetic logic unit created within the confines of a video game's physics engine by some very bored electrical engineer",
+			"both a car and a cdr at the same time",
+			"a secretive nickname",
+			"a witty quote",
+			"a board game",
+			"a blast from the past",
+			"an attention deficit disorder instilled by chatting with /b/tards",
+			"a slang Internet-ism",
+			"an Internet Protocol stack",
+			"a 2.4 Ghz radio",
+			"Internet Explorer",
+			"an epic adventure directed by Michael Bay",
+			"an implication",
+			"a good book",
+			"a rhombus",
+			"a pair of coconuts",
 		]
 	end
 
