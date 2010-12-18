@@ -7,7 +7,7 @@ class Slap < RubotPlugin
 		@fish = [
 			"a large 4r7a8i9n3b2o12w 6t4r7o8u9t3",
 			"a large trout",
-			"a very large halibut illustrating the futility in using trout as they are limmited in size",
+			"a very large halibut illustrating the futility in using trout as they are limited in size",
 			"some freshly baked home-made cookies :3",
 			"some cake",
 			"a pink Macintosh",
