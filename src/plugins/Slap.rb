@@ -70,6 +70,7 @@ class Slap < RubotPlugin
 			"a good book",
 			"a rhombus",
 			"a pair of coconuts",
+			"kPa",
 		]
 	end
 

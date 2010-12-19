@@ -17,11 +17,11 @@ class Say < RubotPlugin
 	end
 
 	def speak(source, message)
-		say source, message.proper_grammar!
+		say source, message
 	end
 
 	def speak_to(source, target, message)
-		say target, message.proper_grammar!
+		say target, message
 	end
 
 end

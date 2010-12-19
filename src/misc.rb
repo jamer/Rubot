@@ -23,30 +23,6 @@ class String
 		end
 		return self
 	end
-
-	def proper_grammar!(proper_nouns = [])
-		capitalize!
-		strip!
-
-		proper_nouns.each do |word|
-			gsub! word.downcase, word
-		end
-
-		case self[length-1]
-		when '.'[0]
-		when '!'[0]
-		when '?'[0]
-		else
-			concat "."
-		end
-
-		case self[0]
-		when 'a'[0]..'z'[0]
-
-		end
-
-		return self
-	end
 end
 
 class Array
