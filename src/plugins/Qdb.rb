@@ -7,28 +7,19 @@ class Qdb < RubotPlugin
 	attr_accessor :cooldown
 
 	def initialize
-		@last = 0
-		@cooldown = 15
+		@cooldown = IRCCooldown.new 15, self,
+				"I can only do a qdb.us quote every %d seconds."
 	end
 
 	def privmsg(user, reply_to, message)
 		return false if message != ":qdb"
-		return false if too_soon reply_to
+		return false unless @cooldown.irc_ready? reply_to
 		bash reply_to
 		return true
 	end
 
-	def too_soon(reply_to)
-		time = Time.now
-		if time.to_i < @last.to_i + @cooldown
-			say reply_to, "I can only do a quote every #{@cooldown} seconds." 
-			return true
-		end
-		return false
-	end
-
 	def bash(reply_to)
-		@last = Time.now
+		@cooldown.trigger
 
 		html = open "http://qdb.us/random"
 		doc = Nokogiri::HTML html

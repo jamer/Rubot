@@ -4,13 +4,24 @@ require 'socket'
 # Each IRCClient represents one connection to a server.
 class IRCClient
 	class << self
-		attr_accessor :listener_types
+		attr_reader :listener_types
 	end
 
 	@listener_types = [
 		:raw,
 		:privmsg,
 	]
+
+	@@undef_msgs = [
+		"%s is undefined.",
+		"There is no %s.",
+		"What is %s?",
+		"I don't understand %s.",
+	]
+
+	def method_missing(symbol, *args)
+		raise @@undef_msgs.random % symbol.to_s
+	end
 
 	# Lets create our IRC commands
 	{
@@ -37,6 +48,12 @@ class IRCClient
 	attr_reader :channels, :users
 	attr_accessor :log_input, :log_output
 	attr_accessor :listeners
+
+=begin
+	def initialize(args)
+		args.keys.each { |name| instance_variable_set "@" + name.to_s, args[name] }
+	end
+=end
 
 	def initialize(id, server, port, nick, username, realname)
 		@id = id
@@ -92,6 +109,11 @@ class IRCClient
 		raise "No recipient" if recipient.nil?
 		return if message == ""
 
+		[*message].each do |item|
+			send action, recipient, message
+		end
+
+=begin
 		case message
 		when Array
 			message.each do |item|
@@ -108,6 +130,7 @@ class IRCClient
 		else
 			say recipient, message.to_s, action
 		end
+=end
 
 		return nil
 	end
@@ -121,6 +144,11 @@ class IRCClient
 	def part(name)
 		msg "PART #{name}"
 		@channels.delete name
+	end
+
+	def nick=(name)
+		@nick = name
+		nickname name
 	end
 
 	def add_plugin(id)
@@ -204,20 +232,20 @@ class IRCClient
 	end
 
 	def names_list(channel, names)
-		user_names = names.split(" ").map { |name| name.gsub "~&@%+", "" }
-		ch = @channels[channel]
+#		user_names = names.split(" ").map { |name| name.gsub "~&@%+", "" }
+#		ch = @channels[channel]
 		# TODO -- Make a hash of User's from user_names
 #		say "#cam", "User names found: " + user_names.join(" ")
-		known_users = user_names.select { |name| Users.include? name }
+#		known_users = user_names.select { |name| Users.include? name }
 #		users = user_names.map { |name| Users.get name }
-		p users
+#		p users
 #		ch.new_users.merge! user_names
 	end
 
 	def end_of_names_list(channel)
-		ch = @channels[channel]
-		ch.users = ch.new_users
-		ch.new_users = Hash.new
+#		ch = @channels[channel]
+#		ch.users = ch.new_users
+#		ch.new_users = Hash.new
 	end
 
 end

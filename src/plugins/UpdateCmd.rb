@@ -12,6 +12,8 @@ class UpdateCmd < RubotPlugin
 		"Updated.",
 		"Now up to date.",
 		"Ahh! I missed that update. Thanks for noticing.",
+		"Let me pick that up...",
+		"I can't believe I let that piece of code slip out of my notice!",
 	]
 
 	@@update_fail = [

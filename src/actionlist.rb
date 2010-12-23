@@ -16,10 +16,7 @@ class ActionList
 
 			# Integer hack, change strings into integers if they match a regexp.
 			args.map! do |arg|
-				if arg =~ /^\d+$/
-					arg = arg.to_i
-				end
-				arg
+				arg =~ /^\d+$/ ? arg.to_i : arg
 			end
 
 			@target.send fn, *args

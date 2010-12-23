@@ -22,6 +22,8 @@ class UserId
 	end
 end
 
+Owner = UserId.new "Jamer", "Jamer", "Admin.omegadev.org"
+
 class User
 	attr_reader :id, :seen_as
 

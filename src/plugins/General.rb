@@ -16,7 +16,6 @@ class General < RubotPlugin
 		al = ActionList.new @@privmsg_actions, self
 		return al.parse(message, [source]) do
 			log "GENERAL #{user.nick} issued command \"#{message}\""
-			Sources.update
 		end
 	end
 

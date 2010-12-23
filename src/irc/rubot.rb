@@ -3,7 +3,7 @@
 
 class Rubot
 	def initialize
-		@SERVER = "irc.n0v4.org"
+		@SERVER = "irc.omegadev.org"
 		@PORT = 6667
 
 		@NICK = "Gandalph"
@@ -14,7 +14,7 @@ class Rubot
 
 		main = Clients::new :main, @SERVER, @PORT, @NICK, @USERNAME, @REALNAME
 		main.add_plugins [:General, :Eval, :UpdateCmd]
-		main.add_plugins [:Say, :Weather, :Bash, :Qdb, :Librarian]
+		main.add_plugins [:Say, :Slap, :Weather, :Bash, :Qdb, :Wiki]
 		main.join @CHANNEL
 	end
 

@@ -7,30 +7,20 @@ class Weather < RubotPlugin
 	attr_accessor :cooldown
 
 	def initialize
-		@last = 0
-		@cooldown = 5
+		@cooldown = IRCCooldown.new 5, self,
+				"I can only check the weather every %d seconds."
 	end
 
 	def privmsg(user, reply_to, message)
-		match = message.match /^:weather (\d+)/
-		return false unless match
-		return false if too_soon reply_to
+		return false unless (match = message.match /^:weather (\d+)/)
+		return false unless @cooldown.irc_ready? reply_to
 		area_code = match[1]
 		weather reply_to, area_code
 		return true
 	end
 
-	def too_soon(reply_to)
-		time = Time.now
-		if time.to_i < @last.to_i + @cooldown
-			say reply_to, "I can only check weather every #{@cooldown} seconds." 
-			return true
-		end
-		return false
-	end
-
 	def weather(reply_to, area_code)
-		@last = Time.now
+		@cooldown.trigger
 
 		doc = Nokogiri::HTML open "http://www.wunderground.com/cgi-bin/" +
 				"findweather/getForecast?query=#{area_code}"
