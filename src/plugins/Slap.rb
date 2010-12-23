@@ -120,6 +120,7 @@ class Slap < RubotPlugin
 			"a maximum local user count",
 			"a bloated IRC client",
 			"the international reference kilogram",
+			"an octopus's garden",
 		]
 	end
 
