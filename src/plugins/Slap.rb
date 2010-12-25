@@ -21,7 +21,7 @@ class Slap < RubotPlugin
 			"Mars",
 			"an IRC server",
 			"an IRC network",
-			"a netop",
+			"a nettop",
 			"itself",
 			"a coupon for the local supermarket",
 			"a fluffy pillow",

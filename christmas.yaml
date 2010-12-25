@@ -1,0 +1,13 @@
+main:
+  nick: ChristmasBot
+  username: saintnick
+  realname: Christmas Bot
+
+  address: irc.n0v4.com
+  port: 6669
+  channels:
+    - bots
+
+  plugins:
+    - Christmas
+
