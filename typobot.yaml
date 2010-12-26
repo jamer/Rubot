@@ -1,7 +1,7 @@
 main:
-  nick: ChristmasBot
-  username: saintnick
-  realname: Christmas Bot
+  nick: TypoBot
+  username: secondchance
+  realname: TypoBot
 
   address: irc.n0v4.com
   port: 6669
@@ -10,5 +10,5 @@ main:
     - bots
 
   plugins:
-    - Christmas
+    - Typo
 
