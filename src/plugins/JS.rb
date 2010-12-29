@@ -22,28 +22,28 @@ class JS < RubotPlugin
 
 	def command_in_new_thread(reply_to, expr)
 		thr = Thread.new do
-			say reply_to, do_command(expr)
+			do_command(expr, reply_to)
 		end
 
 		thr.kill if not thr.join @cmd_timeout
 	end
 
-	def do_command(expr)
+	def do_command(expr, reply_to)
 		begin
+			output = ""
+
 			@pty_writer << expr << "\n"
-			
-			tosend = ""
-			while output =3D @pty_reader.expect(/^>/)
-				if output and output.first
-					
+			while c = @pty_reader.getc do
+				output += c
+				if output =~ /\njs> $/ then
+					break
 				end
-				tosend += output + "\n"
 			end
-			return output
-			# @pty << expr
-			# p @pty.reader
-			# return system(expr)
-			# return eval(expr)
+			
+			lines = output.split("\n")
+			lines.slice(1, lines.count-2).each do |line|
+				say reply_to, line
+			end
 		rescue Exception => detail
 			return detail.message
 		rescue SystemExit
