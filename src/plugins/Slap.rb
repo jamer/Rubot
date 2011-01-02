@@ -121,6 +121,9 @@ class Slap < RubotPlugin
 			"a bloated IRC client",
 			"the international reference kilogram",
 			"an octopus's garden",
+			"an idea",
+			"a freshly-made tuna sammich",
+			"some garlic shrimp",
 		]
 	end
 
