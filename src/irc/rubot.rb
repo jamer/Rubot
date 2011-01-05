@@ -3,6 +3,10 @@
 
 require 'yaml'
 
+Inputs = 0
+Outputs = 1
+Errors = 2
+
 class Rubot
 	def initialize config_files
 		config_files.each do |file|
@@ -21,9 +25,7 @@ class Rubot
 	end
 
 	def init_client id, prop_list
-		props = %w(address port nick username realname).map {|key|
-			prop_list[key]
-		}
+		props = %w(address port nick username realname).map { |key| prop_list[key] }
 		client = Clients::new id, *props
 
 		prop_list["plugins"].each do |plugin|
@@ -52,7 +54,7 @@ class Rubot
 			end
 			ready = select(Clients::sockets.keys, nil, nil, nil)
 			next if !ready
-			ready[0].each { |sock| handle_socket sock }
+			ready[Inputs].each { |sock| handle_socket sock }
 		end
 	end
 
@@ -62,7 +64,7 @@ class Rubot
 			Process::exit
 		end
 		line = sock.gets
-		if sock == $stdin then
+		if sock == STDIN then
 			puts evaluate line
 		else
 			id = Clients::sockets[sock]
