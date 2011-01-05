@@ -10,6 +10,7 @@ class URL < RubotPlugin
 		'tinyurl.com',
 		'tr.im',
 		'youtu.be',
+		'youtube.com',
 	]
 
 	def privmsg user, reply_to, message
