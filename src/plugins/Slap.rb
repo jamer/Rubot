@@ -124,6 +124,8 @@ class Slap < RubotPlugin
 			"an idea",
 			"a freshly-made tuna sammich",
 			"some garlic shrimp",
+			"clear glass fish",
+			"a Python distribution",
 		]
 	end
 

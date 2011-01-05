@@ -7,15 +7,11 @@ main:
   port: 6669
   channels:
     - lobby
+    - bots
 
   plugins:
-    - General
-    - Eval
-    - UpdateCmd
-    - Say
-    - Weather
-    - Bash
-    - Qdb
-    - Urban
-    - Librarian
+    - Laugh
+    - Slap
+    - Typo
+    - URL
 
