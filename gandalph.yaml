@@ -7,6 +7,8 @@ main:
   port: 6669
   channels:
     - lobby
+    - btards
+    - programming
     - bots
 
   plugins:

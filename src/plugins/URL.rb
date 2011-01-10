@@ -82,9 +82,3 @@ class URL < RubotPlugin
 	end
 end
 
-#
-# http://bit.ly/lolkimbo is a JPEG
-#
-# Perhaps say "JPEG image -- http://bit.ly/lolkimbo"
-#
-
