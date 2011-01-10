@@ -126,6 +126,7 @@ class Slap < RubotPlugin
 			"some garlic shrimp",
 			"clear glass fish",
 			"a Python distribution",
+			"a <3",
 		]
 	end
 
