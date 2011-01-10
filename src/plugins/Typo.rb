@@ -3,7 +3,7 @@ class Typo < RubotPlugin
 	@@last_msg = {}
 
 	def privmsg(user, source, message)
-		if message.match /^s\/(.*)\/(.*)\//
+		if message.match /^s\/(.*)\/(.*)\/?/
 			return unless @@last_msg[user.nick]
 			orig = $1
 			new = $2
