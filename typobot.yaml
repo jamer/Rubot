@@ -6,7 +6,6 @@ main:
   address: irc.n0v4.com
   port: 6669
   channels:
-    - lobby
     - bots
 
   plugins:
