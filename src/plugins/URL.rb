@@ -30,7 +30,6 @@ class URL < RubotPlugin
 	def search_for_shortened_urls reply_to, message
 		@@targets.each do |site, url_moves|
 			message.scan(/(#{site}\/[^ ]+)/).map {|i| i[0]}.each do |url|
-				say reply_to, "URL = #{url}"
 				output_title reply_to, "http://#{url}", url_moves
 			end
 		end
