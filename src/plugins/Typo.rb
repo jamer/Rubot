@@ -34,7 +34,7 @@ class Typo < RubotPlugin
 			orig = $1
 			cor = $2
 			cor.chop! if cor[-1..-1] == "/"
-			replace source, nick, orig, new
+			replace source, nick, orig, cor
 		elsif message.match /^(.+?)\/(.+)\/(.+)/
 			nick = $1
 			orig = $2
@@ -43,6 +43,7 @@ class Typo < RubotPlugin
 			replace source, nick, orig, cor
 		else
 			nick = user.nick
+			message.sub! /^\001ACTION/, "* " + user.nick
 			user_said nick, message
 		end
 	end
