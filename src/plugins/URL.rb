@@ -6,19 +6,21 @@ require 'net/http'
 require 'uri'
 
 class URL < RubotPlugin
-	@@minifiers = [
-		'bit.ly',
-		'goo.gl',
-		'is.gd',
-		'tinyurl.com',
-		'tr.im',
-		'youtu.be',
-		'youtube.com',
-		'k.im',
-		'bu.tt',
-		'sn.im',
-		'urls.im',
-		'cli.gs',
+	@@targets = [
+		# [Domain, URL relocation service]
+		['bit.ly', true],
+		['goo.gl', true],
+		['is.gd', true],
+		['tinyurl.com', true],
+		['tr.im', true],
+		['k.im', true],
+		['bu.tt', true],
+		['sn.im', true],
+		['urls.im', true],
+		['cli.gs', true],
+		['youtu.be', true],
+
+		['youtube.com', false],
 	]
 
 	def privmsg user, reply_to, message
@@ -26,9 +28,10 @@ class URL < RubotPlugin
 	end
 
 	def search_for_shortened_urls reply_to, message
-		@@minifiers.each do |site|
+		@@targets.each do |site, url_moves|
 			message.scan(/(#{site}\/[^ ]+)/).map {|i| i[0]}.each do |url|
-				output_title reply_to, url
+				say reply_to, "URL = #{url}"
+				output_title reply_to, "http://#{url}", url_moves
 			end
 		end
 	end
@@ -47,13 +50,16 @@ class URL < RubotPlugin
 		return res['Location']
 	end
 
-	def output_title reply_to, url
-		moved = get_moved_url "http://#{url}"
-		return if moved.nil?
-		if is_image moved
-			handle_image reply_to, moved
+	def output_title reply_to, url, url_moves
+		if url_moves
+			url = get_moved_url "http://#{url}"
+			return if url.nil?
+		end
+
+		if is_image url
+			handle_image reply_to, url
 		else
-			handle_document reply_to, moved
+			handle_document reply_to, url, url_moves
 		end
 	end
 
@@ -68,7 +74,7 @@ class URL < RubotPlugin
 			say reply_to, "Image -- http://#{url}"
 	end
 
-	def handle_document reply_to, url
+	def handle_document reply_to, url, url_moves
 		begin
 			doc = Nokogiri::HTML open url
 		rescue OpenURI::HTTPError
@@ -77,7 +83,11 @@ class URL < RubotPlugin
 		titles = doc.css('title')
 		titles.each do |title|
 			title = title.content.split().join " "
-			say reply_to, "#{title} -- http://#{url}"
+			if url_moves
+				say reply_to, "#{title} -- http://#{url}"
+			else
+				say reply_to, "#{title}"
+			end
 		end
 	end
 end

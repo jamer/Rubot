@@ -1,27 +1,29 @@
 
 class Typo < RubotPlugin
 
-	# Remember this many previous lines for each user.
-	@@remembered = 10
+	def initialize
+		# Remember this many previous lines for each user.
+		@remembered = 10
 
-	# This will hold previous messages from all users we see.
-	@@last_msg = {}
+		# This will hold previous messages from all users we see.
+		@msgs = {}
+	end
 
 	def user_said nick, message
 		# A user said something, let's write it down.
-		unless @@last_msg[nick]
-			@@last_msg[nick] = Array.new
+		unless @msgs[nick]
+			@msgs[nick] = Array.new
 		end
 
-		@@last_msg[nick].push message
-		if @@last_msg[nick].length > @@remembered
-			@@last_msg[nick].shift
+		@msgs[nick].push message
+		if @msgs[nick].length > @remembered
+			@msgs[nick].shift
 		end
 	end
 
 	def replace source, nick, orig, cor
-		return unless @@last_msg[nick]
-		found = @@last_msg[nick].grep(/#{orig}/).last
+		return unless @msgs[nick]
+		found = @msgs[nick].grep(/#{orig}/).last
 		return unless found
 		corrected = found.sub /#{orig}/i, cor
 		say source, "#{nick} meant to say: #{corrected}"
@@ -41,6 +43,8 @@ class Typo < RubotPlugin
 			cor = $3
 			cor.chop! if cor[-1..-1] == "/"
 			replace source, nick, orig, cor
+		elsif message.match /^(.+): s\/(.+)\/(.+)/
+			say source, "match"
 		else
 			nick = user.nick
 			message.sub! /^\001ACTION/, "* " + user.nick
