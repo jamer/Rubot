@@ -1,9 +1,14 @@
 
 class Typo < RubotPlugin
+
+	# Remember this many previous lines for each user.
 	@@remembered = 10
+
+	# This will hold previous messages from all users we see.
 	@@last_msg = {}
 
 	def user_said nick, message
+		# A user said something, let's write it down.
 		unless @@last_msg[nick]
 			@@last_msg[nick] = Array.new
 		end
