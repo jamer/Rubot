@@ -47,7 +47,10 @@ class Typo < RubotPlugin
 			say source, "match"
 		else
 			nick = user.nick
-			message.sub! /^\001ACTION/, "* " + user.nick
+			if message.match /\001/
+				message.sub! /^\001ACTION/, "* " + user.nick
+				message.sub! /\001$/, ""
+			end
 			user_said nick, message
 		end
 	end
