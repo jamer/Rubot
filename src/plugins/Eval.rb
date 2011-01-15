@@ -9,9 +9,12 @@ class Eval < RubotPlugin
 		match = message.match(/^do (.+)/i)
 		return false if !match
 		expression = match[1]
-		if user.nick == "Jamer" || user.host == "Anonymous"
+		if user.nick == "Jamer" || user.nick == "Anon7-2521"
 #			log "EVAL #{expression} from #{user.nick}!#{user.name}@#{user.host}"
-			eval_in_new_thread reply_to, expression.chop
+			if expression.match(/\003$/)
+				expression.chop!
+			end
+			eval_in_new_thread reply_to, expression
 		end
 	end
 
