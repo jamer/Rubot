@@ -1,7 +1,7 @@
 main:
-  nick: TypoBot
-  username: correction
-  realname: TypoBot
+  nick: GuessBot
+  username: guess
+  realname: guess
 
   address: irc.n0v4.com
   port: 6669
@@ -9,5 +9,5 @@ main:
     - bots
 
   plugins:
-    - Typo
+    - GuessGame
 

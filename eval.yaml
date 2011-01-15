@@ -7,7 +7,6 @@ main:
   port: 6669
   channels:
     - bots
-    - lobby
 
   plugins:
     - Eval

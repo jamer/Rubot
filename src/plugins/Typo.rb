@@ -31,19 +31,17 @@ class Typo < RubotPlugin
 	end
 
 	def privmsg user, source, message
+		say source, message
 		if message.match /^s\/(.+)\/(.+)/
 			nick = user.nick
-			orig = $1
-			cor = $2
+			orig, cor = $1, $2
 			cor.chop! if cor[-1..-1] == "/"
 			replace source, nick, orig, cor
 		elsif message.match /^(.+?)\/(.+)\/(.+)/
-			nick = $1
-			orig = $2
-			cor = $3
+			nick, orig, cor = $1, $2, $3
 			cor.chop! if cor[-1..-1] == "/"
 			replace source, nick, orig, cor
-		elsif message.match /^(.+): s\/(.+)\/(.+)/
+		elsif message.match /^([^:]+): s\/(.+)\/(.+)/
 			say source, "match"
 		else
 			nick = user.nick
