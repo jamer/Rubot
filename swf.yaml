@@ -1,0 +1,16 @@
+main:
+  nick: SlapBot
+  username: ewcflash rambler
+  realname: slapbot
+
+  address: irc.everywherechat.com
+  port: 6667
+  channels:
+    - bots
+
+  plugins:
+    - Idle
+    - Slap
+    - Eval
+    - General
+

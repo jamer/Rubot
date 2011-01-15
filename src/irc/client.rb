@@ -64,7 +64,7 @@ class IRCClient
 		# Connect to the IRC server
 		@socket = TCPSocket.open @server, @port
 		nickname @nick
-		login @username, "localhost", @server, @realname
+		login @username, "", @server, @realname
 		umode @nick, "+B"
 	end
 
