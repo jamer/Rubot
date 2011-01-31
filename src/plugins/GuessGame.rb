@@ -5,7 +5,7 @@ class GuessGame < RubotPlugin
 	def initialize
 		@privmsg_actions = {
 			/:guess/i => :start_game,
-			/:# (\d+)/i => :do_guess,
+			/:#\s*(\d+)/ => :do_guess,
 		}
 	end
 

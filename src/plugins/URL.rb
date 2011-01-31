@@ -24,6 +24,7 @@ class URL < RubotPlugin
 	]
 
 	def privmsg user, reply_to, message
+		@reply_to = reply_to
 		search_for_shortened_urls reply_to, message
 	end
 
@@ -43,7 +44,7 @@ class URL < RubotPlugin
 
 		url = URI.parse short_url
 		req = Net::HTTP::Get.new url.path, headers
-		res = Net::HTTP.start(url.host, url.port) {|http|
+		res = Net::HTTP.start(url.host, url.port) { |http|
 			http.request req
 		}
 		return res['Location']
@@ -51,7 +52,7 @@ class URL < RubotPlugin
 
 	def output_title reply_to, url, url_moves
 		if url_moves
-			url = get_moved_url "http://#{url}"
+			url = get_moved_url url
 			return if url.nil?
 		end
 
@@ -64,7 +65,7 @@ class URL < RubotPlugin
 
 	def is_image url
 		["jpg", "jpeg", "png", "gif"].each do |ext|
-			return true if url.match(/#{ext}$/)
+			return true if url.match(/#{ext}(\?|$)/)
 		end
 		return false
 	end
