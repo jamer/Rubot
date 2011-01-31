@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby1.8
 
-require "src/sources.rb"
+require "./src/sources.rb"
 
 source_dirs = [
-	"src/",
-	"src/irc",
+	"./src/",
+	"./src/irc",
 ]
 
 
