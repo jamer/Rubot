@@ -5,7 +5,7 @@ require 'nokogiri'
 require 'net/http'
 require 'uri'
 
-class URL < RubotPlugin
+class AnnounceURL < RubotPlugin
 	@@targets = [
 		# [Domain, URL relocation service]
 		['bit.ly', true],
@@ -24,7 +24,6 @@ class URL < RubotPlugin
 	]
 
 	def privmsg user, reply_to, message
-		@reply_to = reply_to
 		search_for_shortened_urls reply_to, message
 	end
 
