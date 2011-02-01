@@ -1,0 +1,13 @@
+main:
+  nick: URLBot
+  username: urlbot
+  realname: urlbot
+
+  address: irc.n0v4.com
+  port: 6669
+  channels:
+    - bots
+
+  plugins:
+    - AnnounceURL
+
