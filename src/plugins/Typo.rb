@@ -31,7 +31,6 @@ class Typo < RubotPlugin
 	end
 
 	def privmsg user, source, message
-		say source, message
 		if message.match /^s\/(.+)\/(.+)/
 			nick = user.nick
 			orig, cor = $1, $2
