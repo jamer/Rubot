@@ -14,7 +14,6 @@ main:
   plugins:
     - AnnounceURL
     - Laugh
-		- Search
     - Slap
     - Typo
 
