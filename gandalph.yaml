@@ -12,8 +12,9 @@ main:
     - bots
 
   plugins:
+    - AnnounceURL
     - Laugh
+		- Search
     - Slap
     - Typo
-    - AnnounceURL
 
