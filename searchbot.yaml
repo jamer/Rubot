@@ -1,0 +1,13 @@
+main:
+  nick: SearchBot
+  username: searchbot
+  realname: searchbot
+
+  address: irc.n0v4.com
+  port: 6669
+  channels:
+    - bots
+
+  plugins:
+    - Search
+
