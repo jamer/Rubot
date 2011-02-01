@@ -1,0 +1,13 @@
+main:
+  nick: RageBot
+  username: rage
+  realname: rage
+
+  address: irc.n0v4.com
+  port: 6669
+  channels:
+    - bots
+
+  plugins:
+    - Rage
+
