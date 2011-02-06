@@ -1,6 +1,7 @@
 
 require 'json'
 require 'open-uri'
+require 'uri'
 
 require 'rubygems'
 require 'andand'
@@ -19,14 +20,15 @@ class Search < RubotPlugin
 
 	def privmsg user, source, message
 		if message.match(/#{@client.nick}/i) or message.match(/jamerbot/)
-			mkay(source)
+			mkay source
 		end
 		al = ActionList.new @privmsg_actions, self
-		return al.parse(message, [user.nick, source])
+		return al.parse message, [user.nick, source]
 	end
 
 	def search nick, source, message
-		data = open("http://api.duckduckgo.com/?q=#{message.gsub(' ','+')}&o=json")
+		fmesg = URI.escape(message.gsub(' ','+'))
+		data = open("http://api.duckduckgo.com/?q=#{fmesg}&o=json")
 		json = JSON::parse data.readlines.join('\n')
 		output = [
 				json['AbstractText'],
