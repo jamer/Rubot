@@ -33,7 +33,7 @@ class Search < RubotPlugin
 				json['RelatedTopics'].at(0).andand['Text']
 		].delete_if {|x| !x || x.length == 0 }.first
 		if output
-			say source, output
+			say source, output.gsub(/<.*?>/, '')
 		else
 			say source, "I don't know."
 		end
