@@ -52,7 +52,7 @@ class Rubot
 				puts "Clients list empty, quitting"
 				Process::exit
 			end
-			ready = select(Clients::sockets.keys, nil, nil, nil)
+			ready = select([STDIN, *Clients::sockets.keys], nil, nil, nil)
 			next if !ready
 			ready[Inputs].each { |sock| handle_socket sock }
 		end

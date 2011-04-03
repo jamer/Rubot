@@ -9,12 +9,7 @@ class Eval < RubotPlugin
 		match = message.match(/^do (.+)/i)
 		return false if !match
 		expression = match[1]
-		if user.host == "Admin.omegadev.org" || user.host == "For.The.Win" || 
-				user.host == "n0v4.com" || user.host == "n0v4-2692EFCE.cda1.par.lon2.fbi.gov"
-			Sources.update
-#			log "EVAL #{expression} from #{user.nick}!#{user.name}@#{user.host}"
-			eval_in_new_thread reply_to, expression
-		end
+		eval_in_new_thread reply_to, expression
 	end
 
 	def eval_in_new_thread(reply_to, expr)

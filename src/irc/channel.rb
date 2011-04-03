@@ -5,6 +5,7 @@ class Channel
 	def initialize(name)
 		@name = name
 		@new_users = Hash.new
+		@users = Hash.new
 	end
 end
 

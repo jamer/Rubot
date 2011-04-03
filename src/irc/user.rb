@@ -1,51 +1,43 @@
 
-class UserId
-	attr_accessor :nick, :name, :host
-	attr_accessor :user
+ChannelEveryone = 0
+ChannelVoice = 1
+ChannelHalfop = 2
+ChannelOp = 3
+ChannelAdmin = 4
+ChannelFounder = 5
 
-	def initialize(nick, name, host)
+class User
+	attr_accessor :nick, :user_name, :host
+	attr_reader :presences
+
+	def initialize(nick)
 		@nick = nick
-		@name = name
-		@host = host
+		@presences = Hash.new
+	end
+
+	def set_presence(channel, sigil)
+		privilege = case sigil
+		when "+" then ChannelVoice
+		when "%" then ChannelHalfop
+		when "@" then ChannelOp
+		when "&" then ChannelAdmin
+		when "~" then ChannelFounder
+		else ChannelEveryone
+		end
+
+		@presences[channel] = privilege
 	end
 
 	def to_s
-		return "#{nick}!#{name}#{host}"
+		if @user_name and @host
+			return "#{@nick}!#{@user_name}@#{@host}"
+		else
+			return "#{nick}"
+		end
 	end
 
-	def eql?(id)
-		id.is_a? UserId and id.to_s == to_s
+	def eql?(user)
+		user.is_a? User and user.nick == nick
 	end
-
-	def hash
-		to_s.hash
-	end
-end
-
-class User
-	attr_reader :id, :seen_as
-
-	def initialize(id)
-		@seen_as = Array.new
-		self.id = id
-	end
-
-	def id=(id)
-		@id = id
-		@seen_as << id
-	end
-
-	def nick
-		return @id.nick
-	end
-
-	def name
-		return @id.name
-	end
-
-	def host
-		return @id.host
-	end
-
 end
 

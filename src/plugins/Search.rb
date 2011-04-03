@@ -1,3 +1,4 @@
+# requires Ruby 1.9, won't work on 1.8
 
 require 'json'
 require 'open-uri'

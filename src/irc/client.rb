@@ -164,9 +164,11 @@ class IRCClient
 	@@inputs = {
 		/^PING :(.+)/i => :ping_input,
 		/^PRIVMSG (\S+) :(.+)/i => :privmsg_input,
-		/^NICK (.+)/ => :user_changed_nick,
 		/^353 \S+ = (#\S+) :(.+)/ => :names_list,
 		/^366 \S+ (#\S+)/ => :end_of_names_list,
+		/^JOIN :?(.+)/i => :user_join,
+		/^PART :?(.+)/i => :user_part,
+		/^NICK :?(.+)/i => :user_changed_nick,
 	}
 
 	def server_input(line)
@@ -174,8 +176,14 @@ class IRCClient
 
 		# Scrape the user
 		nick, username, host = line.scrape! /^:(\S+?)!(\S+?)@(\S+?)\s/
-		user = Users::get nick, username, host
-		args = nick ? [user] : []
+		if nick
+			user = Users[nick]
+			user.user_name = username
+			user.host = host
+			args = [user]
+		else
+			args = []
+		end
 
 		# Scrape the server
 		server = line.scrape! /^:(\S+) /
@@ -199,19 +207,16 @@ class IRCClient
 		emit :privmsg, user, reply_to, message.to_s
 	end
 
-	def user_changed_nick(user, newnick)
-#		@users[user].nick = newnick
-	end
-
-	def names_list(channel, names)
-		user_names = names.split(" ").map { |name| name.gsub "~&@%+", "" }
+	def names_list(channel, line_of_names)
 		ch = @channels[channel]
-		# TODO -- Make a hash of User's from user_names
-#		say "#cam", "User names found: " + user_names.join(" ")
-		known_users = user_names.select { |name| Users.include? name }
-#		users = user_names.map { |name| Users.get name }
-		p users
-#		ch.new_users.merge! user_names
+		names = line_of_names.split(" ")
+		names.each { |name|
+			sigil = name.downcase.gsub(/[a-z]/, "")
+			name = name.sub(/^[~&@%+]/, "")
+			user = Users[name]
+			user.set_presence channel, sigil
+			ch.new_users[name] = user
+		}
 	end
 
 	def end_of_names_list(channel)
@@ -220,5 +225,31 @@ class IRCClient
 		ch.new_users = Hash.new
 	end
 
+	def user_join(user, channel)
+		user.presences[channel] = ChannelEveryone
+		@channels[channel].users[user.nick] = user
+	end
+
+	def user_part(user, channel)
+		nick = user.nick
+		user.presences.delete channel
+		@channels[channel].users.delete nick
+		Users.delete(nick) unless user.presences.size > 0
+	end
+
+	def user_changed_nick(user, new)
+		# Update user's nickname
+		old = user.nick
+		user.nick = new
+
+		# Update references to this user
+		Users[new] = user
+		Users.delete old
+		user.presences.each do |channel_name, _|
+			channel = @channels[channel_name]
+			channel.users[new] = user
+			channel.users.delete old
+		end
+	end
 end
 
