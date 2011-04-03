@@ -1,32 +1,27 @@
 
 class Clients
-	@clients ||= Hash.new
+	@clients ||= Array.new
 	@sockets ||= Hash.new
 
 	class << self
 		attr_reader :sockets
 
-		def [](id)
-			return @clients[id.to_sym]
+		def [](idx)
+			return @clients[idx]
 		end
 
-		def new(id, server, port, nick, username, realname)
-			if @clients.include? id
-				raise "Client with id #{id} already exists."
-			end
-			client = IRCClient.new id, server, port, nick, username, realname
+		def new(server, port, nick, username, realname)
+			client = IRCClient.new server, port, nick, username, realname
 			client.connect
-			@clients[id] = client
-			@sockets[client.socket] = id
+			@clients.push client
+			@sockets[client.socket] = client
 			return client
 		end
 
 		def delete(c)
 			case c
-			when Symbol
+			when Fixnum
 				delete_client @clients[c]
-			when String
-				delete_client @clients[c.to_sym]
 			when IRCClient
 				delete_client c
 			else
@@ -35,7 +30,7 @@ class Clients
 		end
 
 		def delete_client(client)
-			@clients.delete client.id
+			@clients.delete client
 			@sockets.delete client.socket
 			client.disconnect
 		end

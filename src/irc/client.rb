@@ -33,13 +33,12 @@ class IRCClient
 
 	attr_reader :socket
 	attr_reader :nick, :username, :realname
-	attr_reader :id, :server, :plugins
+	attr_reader :server, :plugins
 	attr_reader :channels, :users
 	attr_accessor :log_input, :log_output
 	attr_accessor :listeners
 
-	def initialize(id, server, port, nick, username, realname)
-		@id = id
+	def initialize(server, port, nick, username, realname)
 		@server = server
 		@port = port
 		@nick = nick
@@ -49,7 +48,7 @@ class IRCClient
 		@channels = Hash.new
 		@users = Hash.new
 
-		@log_input = @log_output = false
+		@log_input = @log_output = true
 
 		@listeners = Hash.new
 		self.class.listener_types.each do |type|
@@ -118,9 +117,12 @@ class IRCClient
 		@channels[name] = channel if not @channels.include? name
 	end
 
-	def part(name)
-		msg "PART #{name}"
-		@channels.delete name
+	def part(channel)
+		msg "PART #{channel}"
+		@channels[channel].users.each do |nick, user|
+			user_part user, channel
+		end
+		@channels.delete channel
 	end
 
 	def add_plugin(id)
@@ -169,6 +171,7 @@ class IRCClient
 		/^JOIN :?(.+)/i => :user_join,
 		/^PART :?(.+)/i => :user_part,
 		/^NICK :?(.+)/i => :user_changed_nick,
+		/^KICK (\S+) (\S+) :?(\S+)/i => :user_kicked,
 	}
 
 	def server_input(line)
@@ -249,6 +252,18 @@ class IRCClient
 			channel = @channels[channel_name]
 			channel.users[new] = user
 			channel.users.delete old
+		end
+	end
+
+	def user_kicked(src, channel, target, reason)
+		user_part Users[target], channel
+
+		# If we get kicked
+		if target == @nick
+			@channels[channel].users.each do |nick, user|
+				user_part user, channel
+			end
+			@channels.delete channel
 		end
 	end
 end

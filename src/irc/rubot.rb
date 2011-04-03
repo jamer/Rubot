@@ -17,21 +17,15 @@ class Rubot
 
 	def load_config_file file
 		puts "Init config #{file}"
-		client_cfgs = YAML::load_file file
+		yaml = YAML::load_file(file)
 
-		client_cfgs.each do |id, prop_list|
-			init_client id.to_sym, prop_list
-		end
-	end
+		props = %w(address port nick username realname).map { |key| yaml[key] }
+		client = Clients::new *props
 
-	def init_client id, prop_list
-		props = %w(address port nick username realname).map { |key| prop_list[key] }
-		client = Clients::new id, *props
-
-		prop_list["plugins"].each do |plugin|
+		yaml["plugins"].each do |plugin|
 			client.add_plugin plugin
 		end
-		prop_list["channels"].each do |channel|
+		yaml["channels"].each do |channel|
 			client.join "##{channel}"
 		end
 	end
@@ -67,8 +61,7 @@ class Rubot
 		if sock == STDIN then
 			puts evaluate line
 		else
-			id = Clients::sockets[sock]
-			client = Clients[id]
+			client = Clients::sockets[sock]
 			client.server_input line.strip
 			client.destroy if client.dead?
 		end
