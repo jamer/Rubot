@@ -49,7 +49,7 @@ class IRCClient
 		@channels = Hash.new
 		@users = Hash.new
 
-		@log_input = @log_output = true
+		@log_input = @log_output = false
 
 		@listeners = Hash.new
 		self.class.listener_types.each do |type|
