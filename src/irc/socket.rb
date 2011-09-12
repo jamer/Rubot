@@ -1,4 +1,5 @@
 require 'socket'
+require 'openssl'
 
 require 'rubygems'
 require 'andand'
@@ -36,8 +37,17 @@ class IRCSocket
 	end
 
 	def connect
-		# Connect to the IRC server
-		@socket = TCPSocket.open(@server, @port)
+		# Connect to the IRC server. First try using SSL, then fall back to a
+		# regular TCP connection.
+		tcp = TCPSocket.open(@server, @port)
+		ssl = OpenSSL::SSL::SSLSocket.new(tcp)
+		begin
+			ssl.connect
+			@socket = ssl
+		rescue
+			tcp = TCPSocket.open(@server, @port)
+			@socket = tcp
+		end
 	end
 
 	def add_listener(obj)

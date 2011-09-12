@@ -4,17 +4,16 @@
 require 'yaml'
 
 class Rubot
-	def initialize(config_files)
+	def initialize(configs)
 		@sockets = []
 
-		abort "no config files specified on command line" if config_files.empty?
-		config_files.each do |file|
-			load_config_file(file)
+		abort "no config files specified on command line" if configs.empty?
+		configs.each do |file|
+			spawn_client(file)
 		end
 	end
 
-	def load_config_file(file)
-		puts "Init config #{file}"
+	def spawn_client(file)
 		yaml = YAML::load_file(file)
 
 		address = yaml["address"]
@@ -24,17 +23,17 @@ class Rubot
 		username = yaml["username"]
 		realname = yaml["realname"]
 
-		plugins = yaml["plugins"]
 		channels = yaml["channels"]
+		plugins = yaml["plugins"]
 
-		abort "No plugins found in config" if plugins.empty?
 		abort "No channels found in config" if channels.empty?
+		abort "No plugins found in config" if plugins.empty?
 
 		socket = IRCSocket.new(address, port)
 		client = IRCClient.new(socket, nick, username, realname)
 		client.connect
-		plugins.each {|plugin| client.add_plugin(plugin) }
 		channels.each {|channel| client.join("##{channel}") }
+		plugins.each {|plugin| client.add_plugin(plugin) }
 		@sockets << socket
 	end
 
