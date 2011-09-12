@@ -3,13 +3,10 @@
 
 require 'yaml'
 
-Inputs = 0
-Outputs = 1
-Errors = 2
-
 class Rubot
 	def initialize config_files
 		abort "no config files specified on command line" if config_files.empty?
+		@sockets = []
 		config_files.each do |file|
 			load_config_file file
 		end
@@ -19,51 +16,36 @@ class Rubot
 		puts "Init config #{file}"
 		yaml = YAML::load_file(file)
 
-		props = %w(address port nick username realname).map { |key| yaml[key] }
-		client = Clients::new *props
+		address = yaml["address"]
+		port = yaml["port"]
+		socket = IRCSocket::new(address, port)
 
-		yaml["plugins"].each do |plugin|
-			client.add_plugin plugin
-		end
-		yaml["channels"].each do |channel|
-			client.join "##{channel}"
-		end
-	end
+		nick = yaml["nick"]
+		username = yaml["username"]
+		realname = yaml["realname"]
+		client = IRCClient.new(socket, nick, username, realname)
+		client.connect
 
-	def evaluate s
-		begin
-			return eval(s).to_s
-		rescue Exception => detail
-			return detail.message
-		end
-		return "Error"
+		yaml["plugins"].each {|plugin| client.add_plugin(plugin) }
+		yaml["channels"].each {|channel| client.join("##{channel}") }
+
+		@sockets << socket
 	end
 
 	def handle_input
 		# Just keep on trucking until we disconnect
 		while true
-			if Clients::empty?
+			@sockets = @sockets.find_all {|socket| socket.connected? }
+			if @sockets.empty?
 				puts "Clients list empty, quitting"
-				Process::exit
+				return
 			end
-			ready = select([STDIN, *Clients::sockets.keys], nil, nil, nil)
-			next if !ready
-			ready[Inputs].each { |sock| handle_socket sock }
-		end
-	end
-
-	def handle_socket sock
-		if sock.eof
-			puts "Socket #{sock.to_s} reached EOF, quitting"
-			Process::exit
-		end
-		line = sock.gets
-		if sock == STDIN then
-			puts evaluate line
-		else
-			client = Clients::sockets[sock]
-			client.server_input line.strip
-			client.destroy if client.dead?
+			@sockets.each do |socket|
+				while socket.peek
+					socket.readline
+				end
+			end
+			sleep(0.1)
 		end
 	end
 
@@ -81,6 +63,5 @@ class Rubot
 			retry
 		end
 	end
-
 end
 

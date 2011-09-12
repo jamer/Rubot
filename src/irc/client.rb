@@ -1,6 +1,3 @@
-
-require 'socket'
-
 # Each IRCClient represents one connection to a server.
 class IRCClient
 	@@listener_types = [
@@ -8,35 +5,14 @@ class IRCClient
 		:privmsg,
 	]
 
-	# Lets create our IRC commands
-	{
-		:login => "USER %s %s %s :%s",
-		:umode => "MODE %s %s",
-		:nickname => "NICK %s",
-
-		:pong => "PONG :%s",
-
-		:privmsg => "PRIVMSG %s :%s",
-		:action => "PRIVMSG %s :\001ACTION %s\001",
-		:notice => "NOTICE %s :%s",
-
-		:quit => "QUIT",
-	}.each do |command, message|
-		define_method(command) do |*args|
-			msg(message % args)
-		end
-	end
-
-	attr_reader :socket
+	attr_reader :ircsocket
 	attr_reader :nick, :username, :realname
-	attr_reader :server, :plugins
+	attr_reader :plugins
 	attr_reader :channels, :users
-	attr_accessor :log_input, :log_output
 	attr_accessor :listeners
 
-	def initialize(server, port, nick, username, realname)
-		@server = server
-		@port = port
+	def initialize(ircsocket, nick, username, realname)
+		@ircsocket = ircsocket
 		@nick = nick
 		@username = username
 		@realname = realname
@@ -44,43 +20,20 @@ class IRCClient
 		@channels = Hash.new
 		@users = Hash.new
 
-		@log_input = @log_output = true
-
 		@listeners = Hash.new
 		@@listener_types.each do |type|
 			@listeners[type] = Array.new
 		end
 
 		@plugins = Hash.new
-		@disconnected = false
 	end
 
 	def connect
 		# Connect to the IRC server
-		@socket = TCPSocket.open(@server, @port)
-		nickname(@nick)
-		login(@username, "localhost", @server, @realname)
-		umode(@nick, "+B")
-	end
-
-	def disconnect
-		# Disconnects from the server. The IRCClient is left running.
-		return if @disconnected
-		@disconnected = true
-		quit
-		@socket.close
-	end
-
-	def destroy
-		# Destroys this IRCClient and frees the resources it was using.
-		disconnect
-		Clients::delete(self)
-	end
-
-	def msg(m)
-		# Send a single message to the IRC server.
-		log("--> #{m}") if @log_output
-		@socket.write("#{m}\r\n")
+		@ircsocket.connect
+		@ircsocket.nickname(@nick)
+		@ircsocket.login(@username, "localhost", @ircsocket.server, @realname)
+		@ircsocket.umode(@nick, "+B")
 	end
 
 	def say(recipient, message, action = :privmsg)
@@ -98,7 +51,7 @@ class IRCClient
 			end
 		when String
 			message.each_line do |line|
-				send(action, recipient, message)
+				@ircsocket.send(action, recipient, message)
 			end
 		else
 			say(recipient, message.to_s, action)
@@ -108,17 +61,20 @@ class IRCClient
 	end
 
 	def join(name)
-		msg("JOIN #{name}")
+		@ircsocket.join(name)
 		channel = Channel.new(name)
 		@channels[name] = channel if not @channels.include?(name)
 	end
 
 	def part(channel)
-		msg("PART #{channel}")
+		@ircsocket.part(name)
 		@channels[channel].users.each do |nick, user|
 			user_part(user, channel)
 		end
 		@channels.delete(channel)
+		if @channels.empty?
+			@ircsocket.quit
+		end
 	end
 
 	def add_plugin(id)
@@ -142,57 +98,17 @@ class IRCClient
 		plugin = @plugins[id]
 		plugin.detach
 		@plugins.delete(id)
+		if @plugins.empty?
+			@ircsocket.quit
+		end
 	end
 
 	def remove_plugins(ids)
 		id.each { |plugin| remove_plugin(plugin) }
 	end
 
-	def dead?
-		dead = false
-		dead = true if @channels.empty?
-		dead = true if listeners.all? { |type, handlers| handlers.length == 0 }
-		return dead
-	end
-
 	def emit(signal, *params)
 		@listeners[signal].each { |l| l.call(*params) }
-	end
-
-	@@inputs = {
-		/^PING :(.+)/i => :ping_input,
-		/^PRIVMSG (\S+) :(.+)/i => :privmsg_input,
-		/^353 \S+ = (#\S+) :(.+)/ => :names_list,
-		/^366 \S+ (#\S+)/ => :end_of_names_list,
-		/^JOIN :?(.+)/i => :user_join,
-		/^PART :?(.+)/i => :user_part,
-		/^NICK :?(.+)/i => :user_changed_nick,
-		/^KICK (\S+) (\S+) :?(\S+)/i => :user_kicked,
-	}
-
-	def server_input(line)
-		log("<-- #{line}") if @log_input
-
-		# Scrape the user
-		nick, username, host = line.scrape!(/^:(\S+?)!(\S+?)@(\S+?)\s/)
-		if nick
-			user = Users[nick]
-			user.user_name = username
-			user.host = host
-			args = [user]
-		else
-			args = []
-		end
-
-		# Scrape the server
-		server = line.scrape!(/^:(\S+) /)
-
-		RegexJump::jump(@@inputs, self, line, args)
-		emit(:raw, user, line)
-	end
-
-	def ping_input(noise)
-		pong(noise)
 	end
 
 	def privmsg_input(user, target, message)
@@ -255,6 +171,9 @@ class IRCClient
 				user_part(user, channel)
 			end
 			@channels.delete(channel)
+			if @channels.empty?
+				@ircsocket.quit
+			end
 		end
 	end
 end
