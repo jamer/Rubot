@@ -3,11 +3,7 @@ require 'socket'
 
 # Each IRCClient represents one connection to a server.
 class IRCClient
-	class << self
-		attr_accessor :listener_types
-	end
-
-	@listener_types = [
+	@@listener_types = [
 		:raw,
 		:privmsg,
 	]
@@ -51,7 +47,7 @@ class IRCClient
 		@log_input = @log_output = true
 
 		@listeners = Hash.new
-		self.class.listener_types.each do |type|
+		@@listener_types.each do |type|
 			@listeners[type] = Array.new
 		end
 
