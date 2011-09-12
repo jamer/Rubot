@@ -13,7 +13,7 @@ class General < RubotPlugin
 	def privmsg(user, source, message)
 		@source = source
 
-		al = ActionList.new @@privmsg_actions, self
+		al = RegexJump.new @@privmsg_actions, self
 		return al.parse(message, [source]) do
 			log "GENERAL #{user.nick} issued command \"#{message}\""
 			Sources.update
@@ -37,7 +37,7 @@ class General < RubotPlugin
 	}
 
 	def raw(user, message)
-		al = ActionList.new @@raw_actions, self
+		al = RegexJump.new @@raw_actions, self
 		return al.parse(message, [user])
 	end
 

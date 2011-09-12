@@ -9,7 +9,7 @@ class Rage < RubotPlugin
 	end
 
 	def privmsg(user, source, message)
-		al = ActionList.new @@privmsg_actions, self
+		al = RegexJump.new @@privmsg_actions, self
 		return al.parse(message, [user.nick, source])
 	end
 

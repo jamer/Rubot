@@ -8,7 +8,7 @@ class Quote < RubotPlugin
 	}
 
 	def privmsg user, reply_to, message
-		al = ActionList.new @@privmsg_actions, self
+		al = RegexJump.new @@privmsg_actions, self
 		return al.parse(message, [reply_to])
 	end
 

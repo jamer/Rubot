@@ -28,7 +28,7 @@ class Librarian < RubotPlugin
 		@reply_to = reply_to
 		@nick = user.nick
 
-		al = ActionList.new @@actions, self
+		al = RegexJump.new @@actions, self
 		return al.parse(command, [user.nick]) do
 			log "LIBRARIAN #{user.nick} issued command \"#{command}\""
 			Sources.update

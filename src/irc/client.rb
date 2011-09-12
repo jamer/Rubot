@@ -191,7 +191,7 @@ class IRCClient
 		# Scrape the server
 		server = line.scrape! /^:(\S+) /
 
-		al = ActionList.new @@inputs, self
+		al = RegexJump.new @@inputs, self
 		al.parse line, args
 		emit :raw, user, line
 	end

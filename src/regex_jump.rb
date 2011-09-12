@@ -1,5 +1,5 @@
 
-class ActionList
+class RegexJump
 	def initialize(actions, target)
 		@actions = actions
 		@target = target

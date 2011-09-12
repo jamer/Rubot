@@ -24,7 +24,7 @@ class Search < RubotPlugin
 			mkay source
 		end
 		message.gsub! /#{@client.nick}:?\s+/, ''
-		al = ActionList.new @privmsg_actions, self
+		al = RegexJump.new @privmsg_actions, self
 		return al.parse message, [user.nick, source]
 	end
 
