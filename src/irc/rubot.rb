@@ -9,10 +9,10 @@ Errors = 2
 
 class Rubot
 	def initialize config_files
+		abort "no config files specified on command line" if config_files.empty?
 		config_files.each do |file|
 			load_config_file file
 		end
-
 	end
 
 	def load_config_file file

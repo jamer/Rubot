@@ -2,6 +2,7 @@
 class SourceFile
 	def initialize(file)
 		@file = file
+		abort "file not found: #{file}" unless File.exist?(file)
 		@current = File.new(file).mtime.to_i
 	end
 
