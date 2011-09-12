@@ -10,9 +10,12 @@ class Say < RubotPlugin
 		@source = source
 
 		al = RegexJump.new @@privmsg_actions, self
-		return al.parse(message, [source]) do
+		if al.parse(message, [source]) then
 			log "SAY #{user.nick} issued command \"#{message}\""
 			Sources.update
+			return true
+		else
+			return false
 		end
 	end
 

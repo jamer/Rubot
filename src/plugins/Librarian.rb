@@ -29,9 +29,12 @@ class Librarian < RubotPlugin
 		@nick = user.nick
 
 		al = RegexJump.new @@actions, self
-		return al.parse(command, [user.nick]) do
+		if al.parse(command, [user.nick]) then
 			log "LIBRARIAN #{user.nick} issued command \"#{command}\""
 			Sources.update
+			return true
+		else
+			return false
 		end
 	end
 
