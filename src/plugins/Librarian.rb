@@ -3,10 +3,9 @@
 
 # Rather than code an ugly case statement for the Librarian's functions, we opt
 # for a more mathematical model. We describe how the different methods relate
-# to simple Regexps, and we ask Ruby to link them up for us.
+# to simple regexps, and we ask Ruby to link them up for us.
 
 class Librarian < RubotPlugin
-
 	@@actions = {
 		/^catalog$/i => :catalog,
 		/^open (.+)/i => :open,
@@ -22,108 +21,100 @@ class Librarian < RubotPlugin
 		/^help$/i => :help,
 	}
 
-	def privmsg(user, reply_to, message)
-		return false unless message =~ /^>(.+)/i
+	def privmsg(user, source, line)
+		return false unless line =~ /^>(.+)/i
 		command = $1.strip
-		@reply_to = reply_to
+		@source = source
 		@nick = user.nick
-
-		al = RegexJump.new @@actions, self
-		if al.parse(command, [user.nick]) then
-			log "LIBRARIAN #{user.nick} issued command \"#{command}\""
-			Sources.update
-			return true
-		else
-			return false
-		end
+		return RegexJump::jump(@@actions, self, command, [user.nick])
 	end
 
 	def respond(message)
-		say @reply_to, message
+		say(@source, message)
 	end
 
 	def private_respond(message)
-		say @nick, message
+		say(@nick, message)
 	end
 
 	def open(nick, title)
-		book = Library.get_book title
+		book = Library.get_book(title)
 		if book.nil?
-			respond "Book not found."
+			respond("Book not found.")
 			return
 		end
-		respond "Ahh, here we go. For some reason it was in the basement. " +
-						"Happy reading!"
+		respond("Ahh, here we go. For some reason it was in the basement. " +
+						"Happy reading!")
 		UserBase[nick].book = book
 	end
 
 	def catalog
-		Library.list_books.each { |line| respond line }
+		Library.list_books.each { |line| respond(line) }
 	end
 
 	def read(nick)
 		user = UserBase[nick]
 		book = user.book
 		if book.nil?
-			respond "You need to open a book before you can start reading."
+			respond("You need to open a book before you can start reading.")
 			return
 		end
-		private_respond user.read
+		private_respond(user.read)
 	end
 
 	def resume(nick)
 		user = UserBase[nick]
 		book = user.book
 		if book.nil?
-			say @@resume_needs_book.random
+			say(@@resume_needs_book.random)
 			return
 		end
-		user.resume.each { |line| private_respond line }
+		user.resume.each { |line| private_respond(line) }
 	end
 
 	def start_over(nick)
 		user = UserBase[nick]
 		if user.book.nil?
-			respond "Whaaatt? Go back to the beginning? " +
-				"You haven't even started reading a book yet."
+			respond("Whaaatt? Go back to the beginning? " +
+				"You haven't even started reading a book yet.")
 			return
 		end
-		respond "Flipping back to the first page. " +
-			"You used to be at line #{user.line}."
+		respond("Flipping back to the first page. " +
+			"You used to be at line #{user.line}.")
 		user.line = 0
 	end
 
 	def jump_to(nick)
 		user = UserBase[nick]
 		if user.book.nil?
-			respond "Whaaatt? Search the book? " +
-				"You haven't even started reading a book yet."
+			respond("Whaaatt? Search the book? " +
+				"You haven't even started reading a book yet.")
 			return
 		end
-		respond @@line_set_to.random % line
+		respond(@@line_set_to.random % line)
 		UserBase[nick].line = line
 	end
 
 	def get_chunk(nick)
 		chunk = UserBase[nick].chunk
-		respond "For you, books will be delivered in #{chunk}-line chunks."
+		respond("For you, books will be delivered in #{chunk}-line chunks.")
 	end
 
 	def set_chunk(nick, chunk)
 		if chunk == 0
-			respond @@chunk_required.random
+			respond(@@chunk_required.random)
 			return
 		elsif chunk > 1000
 			chunk = 1000
-			respond @@too_much_chunk.random % [chunk, chunk]
+			respond(@@too_much_chunk.random % [chunk, chunk])
 		else
-			respond @@new_chunk_size.random % chunk
+			respond(@@new_chunk_size.random % chunk)
 		end
 		UserBase[nick].chunk = chunk
 	end
 
 	def help
-		respond @@help_msg
+		respond(@@help_msg)
 	end
 
 	@@resume_needs_book = [

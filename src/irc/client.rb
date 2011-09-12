@@ -187,8 +187,7 @@ class IRCClient
 		# Scrape the server
 		server = line.scrape!(/^:(\S+) /)
 
-		al = RegexJump.new(@@inputs, self)
-		al.parse(line, args)
+		RegexJump::jump(@@inputs, self, line, args)
 		emit(:raw, user, line)
 	end
 

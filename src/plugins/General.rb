@@ -1,8 +1,6 @@
 # General use IRC bot
-
 class General < RubotPlugin
-
-	@@privmsg_actions = {
+	@@actions = {
 		/^:join (#.+)/i => :join,
 		/^:part (#.+)/i => :part,
 		/^:leave (#.+)/i => :part,
@@ -10,43 +8,32 @@ class General < RubotPlugin
 		/^:leave$/i => :part_this,
 	}
 
-	def privmsg(user, source, message)
-		@source = source
-
-		al = RegexJump.new @@privmsg_actions, self
-		if al.parse(message, [source]) then
-			log "GENERAL #{user.nick} issued command \"#{message}\""
-			Sources.update
-			return true
-		else
-			return false
-		end
+	def privmsg(user, source, line)
+		return RegexJump::jump(@@actions, self, line, [source])
 	end
 
 	def join(source, channel)
-		@client.join channel
+		@client.join(channel)
 	end
 
 	def part(source, channel)
-		@client.part channel
+		@client.part(channel)
 	end
 
 	def part_this(source)
-		@client.part source
+		@client.part(source)
 	end
 
-	@@raw_actions = {
+	@@raw_handlers = {
 		/^INVITE \S+ :(#.+)/i => :invite
 	}
 
-	def raw(user, message)
-		al = RegexJump.new @@raw_actions, self
-		return al.parse(message, [user])
+	def raw(user, line)
+		return RegexJump::jump(@@raw_handlers, self, line, [user])
 	end
 
 	def invite(user, channel)
-		@client.join channel
+		@client.join(channel)
 	end
-
 end
 

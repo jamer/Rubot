@@ -1,11 +1,5 @@
-
 class RegexJump
-	def initialize(actions, target)
-		@actions = actions
-		@target = target
-	end
-
-	def try_s2i(arg)
+	def self.try_s2i(arg)
 		# If it's a string that looks like an int, cast to an int.
 		if arg.class == String and arg =~ /^\d+$/
 			return arg.to_i
@@ -14,15 +8,24 @@ class RegexJump
 		end
 	end
 
-	def parse(msg, base_args)
-		regex, fn = @actions.find {|regex, fn| regex.match(msg) }
-		if regex or fn then
-			captures = regex.match(msg).captures
-			args = (base_args + captures).map! {|arg| try_s2i arg }
-			@target.send(fn, *args)
+	def self.jump(list, target, str, base_args)
+		regex, fn = list.find {|regex, fn| regex.match(str) }
+		if regex or fn
+			args = (base_args + $~.captures).map! {|arg| try_s2i arg }
+			target.send(fn, *args)
 			return true
 		else
 			return false
+		end
+	end
+
+	def self.get_jump(list, str, base_args)
+		regex, fn = list.find {|regex, fn| regex.match(str) }
+		if regex or fn
+			args = (base_args + $~.to_a).map! {|arg| try_s2i arg }
+			return fn, args
+		else
+			return nil
 		end
 	end
 end

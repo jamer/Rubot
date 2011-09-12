@@ -4,12 +4,12 @@ class Square
 
 	attr_accessor :piece, :color
 
-	def initialize piece_char, color
-		@piece = get_piece_by_char piece_char
+	def initialize(piece_char, color)
+		@piece = get_piece_by_char(piece_char)
 		@color = color
 	end
 
-	def get_piece_by_char char
+	def get_piece_by_char(char)
 		return {
 			'e' => "empty",
 			'p' => "pawn",
@@ -21,7 +21,7 @@ class Square
 		}[char]
 	end
 
-	def get_color_by_word word
+	def get_color_by_word(word)
 		return {
 			"black" => '2',
 			"white" => '4',
@@ -58,19 +58,18 @@ class Game
 			@board[row_num] = Array.new
 			color = row_num >= 4 ? "white" : "black"
 			line.each_char do |c|
-				@board[row_num].push Square.new c, color
+				@board[row_num].push(Square.new(c, color))
 			end
 		end
 	end
 end
 
 class Chess < RubotPlugin
-	def privmsg user, source, message
-		al = RegexJump.new @@privmsg_actions, self
-		return al.parse message, [user, source]
+	def privmsg(user, source, line)
+		return RegexJump::jump(@@actions, self, line, [user, source])
 	end
 
-	@@privmsg_actions = {
+	@@actions = {
 		/^:display$/i => :display,
 	}
 
@@ -79,10 +78,10 @@ class Chess < RubotPlugin
 		return @game
 	end
 
-	def display user, source
+	def display(user, source)
 		game.board.each do |row|
-			row.map! {|sq| sq.char_view}
-			say source, row.join
+			row.map! {|sq| sq.char_view }
+			say(source, row.join)
 		end
 	end
 end

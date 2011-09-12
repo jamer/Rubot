@@ -1,38 +1,31 @@
-
 class GuessGame < RubotPlugin
 	# Random number guessing game.
+	@@actions = {
+		/:guess/i => :start_game,
+		/:#\s*(\d+)/ => :do_guess,
+	}
 
-	def initialize
-		@privmsg_actions = {
-			/:guess/i => :start_game,
-			/:#\s*(\d+)/ => :do_guess,
-		}
+	def privmsg(user, source, line)
+		return RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 
-	def privmsg user, source, message
-		@source = source
-
-		al = RegexJump.new @privmsg_actions, self
-		return al.parse message, [user.nick, source]
+	def start_game(nick, source)
+		@number = rand(500)
+		say(source, "I have chosen a random number between 0 and 499")
 	end
 
-	def start_game nick, source
-		@number = rand 500
-		say source, "I have chosen a random number between 0 and 499"
-	end
-
-	def do_guess nick, source, guess
+	def do_guess(nick, source, guess)
 		if @number.nil?
-			start_game nick, source
+			start_game(nick, source)
 		end
 
 		if guess == @number
-			say source, "#{nick}: You got it!"
+			say(source, "#{nick}: You got it!")
 			@number = nil
 		elsif guess < @number
-			say source, "#{nick}: Higher."
+			say(source, "#{nick}: Higher.")
 		elsif guess > @number
-			say source, "#{nick}: Lower."
+			say(source, "#{nick}: Lower.")
 		end
 	end
 end
