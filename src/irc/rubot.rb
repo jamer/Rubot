@@ -4,15 +4,16 @@
 require 'yaml'
 
 class Rubot
-	def initialize config_files
-		abort "no config files specified on command line" if config_files.empty?
+	def initialize(config_files)
 		@sockets = []
+
+		abort "no config files specified on command line" if config_files.empty?
 		config_files.each do |file|
-			load_config_file file
+			load_config_file(file)
 		end
 	end
 
-	def load_config_file file
+	def load_config_file(file)
 		puts "Init config #{file}"
 		yaml = YAML::load_file(file)
 
@@ -37,24 +38,6 @@ class Rubot
 		@sockets << socket
 	end
 
-	def handle_input
-		# Just keep on trucking until we disconnect
-		while true
-			@sockets = @sockets.find_all {|socket| socket.connected? }
-			if @sockets.empty?
-				puts "Clients list empty, quitting"
-				return
-			end
-			@sockets.each do |socket|
-				while socket.peek
-					socket.readline
-					break if not socket.connected?
-				end
-			end
-			sleep(0.01)
-		end
-	end
-
 	def main_loop
 		# If we get an exception, then print it out and keep going
 		# We do NOT want to disconnect unexpectedly!
@@ -64,9 +47,20 @@ class Rubot
 		rescue SystemExit
 		rescue Exception => detail
 			puts "Exception caught - #{detail.class}(\"#{detail.message}\")"
-			puts detail.backtrace.join "\n"
+			puts detail.backtrace.join("\n")
 			puts
 			retry
+		end
+	end
+
+	def handle_input
+		# Just keep on trucking until we disconnect
+		while sleep(0.01)
+			@sockets = @sockets.find_all {|socket| socket.connected? }
+			abort "Clients list empty, quitting" if @sockets.empty?
+			@sockets.each do |socket|
+				socket.readline while (socket.connected? and socket.peek)
+			end
 		end
 	end
 end
