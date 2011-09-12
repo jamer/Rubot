@@ -22,7 +22,7 @@ class RegexJump
 	def self.get_jump(list, str, base_args)
 		regex, fn = list.find {|regex, fn| regex.match(str) }
 		if regex or fn
-			args = (base_args + $~.to_a).map! {|arg| try_s2i arg }
+			args = (base_args + $~.captures).map! {|arg| try_s2i arg }
 			return fn, args
 		else
 			return nil

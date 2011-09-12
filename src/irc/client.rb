@@ -26,6 +26,8 @@ class IRCClient
 		end
 
 		@plugins = Hash.new
+
+		ircsocket.add_listener(self)
 	end
 
 	def connect
@@ -66,12 +68,12 @@ class IRCClient
 		@channels[name] = channel if not @channels.include?(name)
 	end
 
-	def part(channel)
+	def part(name)
 		@ircsocket.part(name)
-		@channels[channel].users.each do |nick, user|
-			user_part(user, channel)
+		@channels[name].users.each do |nick, user|
+			user_part(user, name)
 		end
-		@channels.delete(channel)
+		@channels.delete(name)
 		if @channels.empty?
 			@ircsocket.quit
 		end

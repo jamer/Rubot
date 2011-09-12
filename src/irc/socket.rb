@@ -40,13 +40,13 @@ class IRCSocket
 		@socket = TCPSocket.open(@server, @port)
 	end
 
-	def listen(obj)
+	def add_listener(obj)
 		@listeners << obj
 	end
 
 	def emit(sym, *params)
 		@listeners.each do |obj|
-			obj.public_send(sym, *params) if obj.responds_to?(sym)
+			obj.send(sym, *params) if obj.respond_to?(sym)
 		end
 	end
 
@@ -66,7 +66,7 @@ class IRCSocket
 			@connected = false
 			@socket.close
 		else
-			line = @socket.gets
+			line = @socket.gets.chomp
 			log("<-- #{line}") if @log_input
 			process_line(line)
 		end
@@ -105,7 +105,7 @@ class IRCSocket
 
 		sym, args = RegexJump::get_jump(@@inputs, line, base_args)
 		if sym
-			emit(sym, args)
+			emit(sym, *args)
 		else
 			# Unhandled line...
 		end
@@ -115,19 +115,19 @@ class IRCSocket
 		return @connected
 	end
 
-	def join(name)
-		unless name[0,1] == "#": raise "invalid channel name" end
-		write("JOIN #{name}")
+	def join(channel)
+		raise "invalid channel name" unless channel[0,1] == "#"
+		write("JOIN #{channel}")
 	end
 
 	def part(channel)
-		unless name[0,1] == "#": raise "invalid channel name" end
+		raise "invalid channel name" unless channel[0,1] == "#"
 		write("PART #{channel}")
 	end
 
 	def quit
 		# Disconnect from the server.
-		unless @connected: raise "already disconnected" end
+		raise "already disconnected" unless @connected
 		write("QUIT")
 		@connected = false
 		@socket.close

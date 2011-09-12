@@ -43,6 +43,7 @@ class Rubot
 			@sockets.each do |socket|
 				while socket.peek
 					socket.readline
+					break if not socket.connected?
 				end
 			end
 			sleep(0.1)
