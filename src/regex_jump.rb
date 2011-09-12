@@ -5,27 +5,26 @@ class RegexJump
 		@target = target
 	end
 
-	def parse(msg, base_args)
-		@actions.each do |regex, fn|
-			match = regex.match(msg)
-			next unless match
-
-			yield if block_given?
-
-			args = base_args + match.captures
-
-			# Integer hack, change strings into integers if they match a regexp.
-			args.map! do |arg|
-				if arg =~ /^\d+$/
-					arg = arg.to_i
-				end
-				arg
-			end
-
-			@target.send fn, *args
-			return true
+	def try_s2i(arg)
+		# If it's a string that looks like an int, cast to an int.
+		if arg.class == String and arg =~ /^\d+$/
+			return arg.to_i
+		else
+			return arg
 		end
-		return false
+	end
+
+	def parse(msg, base_args)
+		regex, fn = @actions.find {|regex, fn| regex.match(msg) }
+		if regex or fn then
+			yield if block_given?
+			captures = regex.match(msg).captures
+			args = (base_args + captures).map! {|arg| try_s2i arg }
+			@target.send(fn, *args)
+			return true
+		else
+			return false
+		end
 	end
 end
 
