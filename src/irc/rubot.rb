@@ -18,17 +18,22 @@ class Rubot
 
 		address = yaml["address"]
 		port = yaml["port"]
-		socket = IRCSocket::new(address, port)
 
 		nick = yaml["nick"]
 		username = yaml["username"]
 		realname = yaml["realname"]
+
+		plugins = yaml["plugins"]
+		channels = yaml["channels"]
+
+		abort "No plugins found in config" if plugins.empty?
+		abort "No channels found in config" if channels.empty?
+
+		socket = IRCSocket.new(address, port)
 		client = IRCClient.new(socket, nick, username, realname)
 		client.connect
-
-		yaml["plugins"].each {|plugin| client.add_plugin(plugin) }
-		yaml["channels"].each {|channel| client.join("##{channel}") }
-
+		plugins.each {|plugin| client.add_plugin(plugin) }
+		channels.each {|channel| client.join("##{channel}") }
 		@sockets << socket
 	end
 
@@ -46,7 +51,7 @@ class Rubot
 					break if not socket.connected?
 				end
 			end
-			sleep(0.1)
+			sleep(0.01)
 		end
 	end
 
