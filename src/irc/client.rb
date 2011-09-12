@@ -1,15 +1,9 @@
 # Each IRCClient represents one connection to a server.
 class IRCClient
-	@@listener_types = [
-		:raw,
-		:privmsg,
-	]
-
 	attr_reader :ircsocket
 	attr_reader :nick, :username, :realname
 	attr_reader :plugins
 	attr_reader :channels, :users
-	attr_accessor :listeners
 
 	def initialize(ircsocket, nick, username, realname)
 		@ircsocket = ircsocket
@@ -19,12 +13,6 @@ class IRCClient
 
 		@channels = Hash.new
 		@users = Hash.new
-
-		@listeners = Hash.new
-		@@listener_types.each do |type|
-			@listeners[type] = Array.new
-		end
-
 		@plugins = Hash.new
 
 		ircsocket.add_listener(self)
@@ -85,12 +73,12 @@ class IRCClient
 		end
 		Sources.require("src/plugins/" + id.to_s + ".rb")
 		plugin = Kernel.const_get(id).new
-		plugin.attach(self)
+		plugin.client = self
 		@plugins[id] = plugin
 	end
 
 	def add_plugins(ids)
-		ids.each { |plugin| add_plugin(plugin) }
+		ids.each {|plugin| add_plugin(plugin) }
 	end
 
 	def remove_plugin(id)
@@ -98,7 +86,6 @@ class IRCClient
 			raise "Plugin #{id} not loaded in client #{id}"
 		end
 		plugin = @plugins[id]
-		plugin.detach
 		@plugins.delete(id)
 		if @plugins.empty?
 			@ircsocket.quit
@@ -106,11 +93,13 @@ class IRCClient
 	end
 
 	def remove_plugins(ids)
-		id.each { |plugin| remove_plugin(plugin) }
+		id.each {|plugin| remove_plugin(plugin) }
 	end
 
-	def emit(signal, *params)
-		@listeners[signal].each { |l| l.call(*params) }
+	def emit(sym, *params)
+		@plugins.each do |name, obj|
+			obj.send(sym, *params) if obj.respond_to?(sym)
+		end
 	end
 
 	def privmsg_input(user, target, message)
@@ -122,13 +111,13 @@ class IRCClient
 	def names_list(channel, line_of_names)
 		ch = @channels[channel]
 		names = line_of_names.split(" ")
-		names.each { |name|
+		names.each do |name|
 			sigil = name.downcase.gsub(/[a-z]/, "")
 			name = name.sub(/^[~&@%+]/, "")
 			user = Users[name]
 			user.set_presence(channel, sigil)
 			ch.new_users[name] = user
-		}
+		end
 	end
 
 	def end_of_names_list(channel)

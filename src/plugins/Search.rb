@@ -1,5 +1,5 @@
 # requires Ruby 1.9, won't work on 1.8
-if VERSION < "1.9"
+if RUBY_VERSION < "1.9"
 	abort "The Search plugin requires Ruby 1.9"
 end
 
@@ -11,7 +11,6 @@ require 'rubygems'
 require 'andand'
 
 class Search < RubotPlugin
-
 	@@actions = {
 		/:search\s*(.+)/i => :search,
 		/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i => :search11,
