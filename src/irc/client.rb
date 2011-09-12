@@ -22,8 +22,8 @@ class IRCClient
 
 		:quit => "QUIT",
 	}.each do |command, message|
-		define_method command do |*args|
-			msg message % args
+		define_method(command) do |*args|
+			msg(message % args)
 		end
 	end
 
@@ -57,10 +57,10 @@ class IRCClient
 
 	def connect
 		# Connect to the IRC server
-		@socket = TCPSocket.open @server, @port
-		nickname @nick
-		login @username, "localhost", @server, @realname
-		umode @nick, "+B"
+		@socket = TCPSocket.open(@server, @port)
+		nickname(@nick)
+		login(@username, "localhost", @server, @realname)
+		umode(@nick, "+B")
 	end
 
 	def disconnect
@@ -74,13 +74,13 @@ class IRCClient
 	def destroy
 		# Destroys this IRCClient and frees the resources it was using.
 		disconnect
-		Clients::delete self
+		Clients::delete(self)
 	end
 
 	def msg(m)
 		# Send a single message to the IRC server.
-		log "--> #{m}" if @log_output
-		@socket.write "#{m}\r\n"
+		log("--> #{m}") if @log_output
+		@socket.write("#{m}\r\n")
 	end
 
 	def say(recipient, message, action = :privmsg)
@@ -90,62 +90,62 @@ class IRCClient
 		case message
 		when Array
 			message.each do |item|
-				say recipient, item, action
+				say(recipient, item, action)
 			end
 		when Hash
 			message.each do |key, value|
-				say recipient, "#{key} => #{value}", action
+				say(recipient, "#{key} => #{value}", action)
 			end
 		when String
 			message.each_line do |line|
-				send action, recipient, message
+				send(action, recipient, message)
 			end
 		else
-			say recipient, message.to_s, action
+			say(recipient, message.to_s, action)
 		end
 
 		return nil
 	end
 
 	def join(name)
-		msg "JOIN #{name}"
-		channel = Channel.new name
-		@channels[name] = channel if not @channels.include? name
+		msg("JOIN #{name}")
+		channel = Channel.new(name)
+		@channels[name] = channel if not @channels.include?(name)
 	end
 
 	def part(channel)
-		msg "PART #{channel}"
+		msg("PART #{channel}")
 		@channels[channel].users.each do |nick, user|
-			user_part user, channel
+			user_part(user, channel)
 		end
-		@channels.delete channel
+		@channels.delete(channel)
 	end
 
 	def add_plugin(id)
-		if @plugins.include? id
+		if @plugins.include?(id)
 			raise "Plugin #{id} already loaded in client #{id}"
 		end
-		Sources.require "src/plugins/" + id.to_s + ".rb"
+		Sources.require("src/plugins/" + id.to_s + ".rb")
 		plugin = Kernel.const_get(id).new
-		plugin.attach self
+		plugin.attach(self)
 		@plugins[id] = plugin
 	end
 
 	def add_plugins(ids)
-		ids.each { |plugin| add_plugin plugin }
+		ids.each { |plugin| add_plugin(plugin) }
 	end
 
 	def remove_plugin(id)
-		unless @plugins.include? id
+		unless @plugins.include?(id)
 			raise "Plugin #{id} not loaded in client #{id}"
 		end
 		plugin = @plugins[id]
 		plugin.detach
-		@plugins.delete id
+		@plugins.delete(id)
 	end
 
 	def remove_plugins(ids)
-		id.each { |plugin| remove_plugin plugin }
+		id.each { |plugin| remove_plugin(plugin) }
 	end
 
 	def dead?
@@ -156,7 +156,7 @@ class IRCClient
 	end
 
 	def emit(signal, *params)
-		@listeners[signal].each { |l| l.call *params }
+		@listeners[signal].each { |l| l.call(*params) }
 	end
 
 	@@inputs = {
@@ -171,10 +171,10 @@ class IRCClient
 	}
 
 	def server_input(line)
-		log "<-- #{line}" if @log_input
+		log("<-- #{line}") if @log_input
 
 		# Scrape the user
-		nick, username, host = line.scrape! /^:(\S+?)!(\S+?)@(\S+?)\s/
+		nick, username, host = line.scrape!(/^:(\S+?)!(\S+?)@(\S+?)\s/)
 		if nick
 			user = Users[nick]
 			user.user_name = username
@@ -185,25 +185,21 @@ class IRCClient
 		end
 
 		# Scrape the server
-		server = line.scrape! /^:(\S+) /
+		server = line.scrape!(/^:(\S+) /)
 
-		al = RegexJump.new @@inputs, self
-		al.parse line, args
-		emit :raw, user, line
+		al = RegexJump.new(@@inputs, self)
+		al.parse(line, args)
+		emit(:raw, user, line)
 	end
 
 	def ping_input(noise)
-		pong noise
+		pong(noise)
 	end
 
 	def privmsg_input(user, target, message)
 		private_message = (target == @nick)
-		if private_message
-			reply_to = user.nick
-		else
-			reply_to = target
-		end
-		emit :privmsg, user, reply_to, message.to_s
+		reply_to = private_message ? user.nick : target
+		emit(:privmsg, user, reply_to, message.to_s)
 	end
 
 	def names_list(channel, line_of_names)
@@ -213,7 +209,7 @@ class IRCClient
 			sigil = name.downcase.gsub(/[a-z]/, "")
 			name = name.sub(/^[~&@%+]/, "")
 			user = Users[name]
-			user.set_presence channel, sigil
+			user.set_presence(channel, sigil)
 			ch.new_users[name] = user
 		}
 	end
@@ -231,8 +227,8 @@ class IRCClient
 
 	def user_part(user, channel)
 		nick = user.nick
-		user.presences.delete channel
-		@channels[channel].users.delete nick
+		user.presences.delete(channel)
+		@channels[channel].users.delete(nick)
 		Users.delete(nick) unless user.presences.size > 0
 	end
 
@@ -243,23 +239,23 @@ class IRCClient
 
 		# Update references to this user
 		Users[new] = user
-		Users.delete old
+		Users.delete(old)
 		user.presences.each do |channel_name, _|
 			channel = @channels[channel_name]
 			channel.users[new] = user
-			channel.users.delete old
+			channel.users.delete(old)
 		end
 	end
 
 	def user_kicked(src, channel, target, reason)
-		user_part Users[target], channel
+		user_part(Users[target], channel)
 
 		# If we get kicked
 		if target == @nick
 			@channels[channel].users.each do |nick, user|
-				user_part user, channel
+				user_part(user, channel)
 			end
-			@channels.delete channel
+			@channels.delete(channel)
 		end
 	end
 end
