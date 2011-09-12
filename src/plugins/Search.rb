@@ -29,7 +29,7 @@ class Search < RubotPlugin
 	end
 
 	def fetch_info(terms)
-		formatted = URI.escape(terms.gsub(' ','+'))
+		formatted = URI::escape(terms.gsub(' ','+'))
 		data = open("http://api.duckduckgo.com/?q=#{formatted}&o=json")
 		json = JSON::parse(data.readlines.join('\n'))
 		return json

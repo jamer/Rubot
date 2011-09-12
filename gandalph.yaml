@@ -1,19 +1,18 @@
-main:
-  nick: Gandalph
-  username: wizard
-  realname: Gandalph the Grey
+nick: Gandalph
+username: wizard
+realname: Gandalph the Grey
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - lobby
-    - btards
-    - programming
-    - bots
+address: irc.n0v4.com
+port: 6669
+channels:
+  - lobby
+  - btards
+  - programming
+  - bots
 
-  plugins:
-    - AnnounceURL
-    - Laugh
-    - Slap
-    - Typo
+plugins:
+  - AnnounceURL
+  - Laugh
+  - Slap
+  - Typo
 

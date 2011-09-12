@@ -1,13 +1,12 @@
-main:
-  nick: Twitter
-  username: twitter
-  realname: Rubot-Twitter
+nick: Twitter
+username: twitter
+realname: Rubot-Twitter
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - Rubot-Twitter
+address: irc.n0v4.com
+port: 6669
+channels:
+  - Rubot-Twitter
 
-  plugins:
-    - Tweet
+plugins:
+  - Tweet
 

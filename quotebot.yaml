@@ -1,13 +1,12 @@
-main:
-  nick: QuoteBot
-  username: memory
-  realname: QuoteBot
+nick: QuoteBot
+username: memory
+realname: QuoteBot
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - bots
+address: irc.n0v4.com
+port: 6669
+channels:
+  - bots
 
-  plugins:
-    - Quote
+plugins:
+  - Quote
 

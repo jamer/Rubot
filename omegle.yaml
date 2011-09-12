@@ -1,14 +1,13 @@
-main:
-  nick: Stranger
-  username: stranger
-  realname: Omegle Bot
+nick: Stranger
+username: stranger
+realname: Omegle Bot
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - omegle
-    - bots
+address: irc.n0v4.com
+port: 6669
+channels:
+  - omegle
+  - bots
 
-  plugins:
-    - Omegle
+plugins:
+  - Omegle
 

@@ -1,13 +1,12 @@
-main:
-  nick: SearchBot
-  username: searchbot
-  realname: searchbot
+nick: SearchBot
+username: searchbot
+realname: searchbot
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - bots
+address: lalia.datnode.net
+port: 6669
+channels:
+  - bots
 
-  plugins:
-    - Search
+plugins:
+  - Search
 
