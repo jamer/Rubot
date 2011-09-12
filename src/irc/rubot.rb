@@ -26,8 +26,8 @@ class Rubot
 		channels = yaml["channels"]
 		plugins = yaml["plugins"]
 
-		abort "No channels found in config" if channels.empty?
-		abort "No plugins found in config" if plugins.empty?
+		abort "No channels found in config" if channels.nil?
+		abort "No plugins found in config" if plugins.nil?
 
 		socket = IRCSocket.new(address, port)
 		client = IRCClient.new(socket, nick, username, realname)
