@@ -126,7 +126,7 @@ class IRCClient
 		nick = user.nick
 		user.presences.delete(channel)
 		@channels[channel].users.delete(nick)
-		Users.delete(nick) unless user.presences.size > 0
+		Users::delete(nick) unless user.presences.size > 0
 	end
 
 	def user_changed_nick(user, new)
@@ -136,7 +136,7 @@ class IRCClient
 
 		# Update references to this user
 		Users[new] = user
-		Users.delete(old)
+		Users::delete(old)
 		user.presences.each do |channel_name, _|
 			channel = @channels[channel_name]
 			channel.users[new] = user

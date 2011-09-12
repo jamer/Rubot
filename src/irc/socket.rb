@@ -33,7 +33,7 @@ class IRCSocket
 		@port = port
 		@log_input = @log_output = true
 		@listeners = Array.new
-		@connected = true
+		@connected = false
 	end
 
 	def connect
@@ -48,6 +48,7 @@ class IRCSocket
 			tcp = TCPSocket.open(@server, @port)
 			@socket = tcp
 		end
+		@connected = true
 	end
 
 	def add_listener(obj)
