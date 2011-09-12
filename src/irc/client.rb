@@ -28,7 +28,7 @@ class IRCClient
 
 	def say(recipient, message, action = :privmsg)
 		raise "No recipient" if recipient.nil?
-		return if message == ""
+		return nil if message == ""
 
 		case message
 		when Array
@@ -67,33 +67,24 @@ class IRCClient
 		end
 	end
 
-	def add_plugin(id)
-		if @plugins.include?(id)
-			raise "Plugin #{id} already loaded in client #{id}"
+	def add_plugin(name)
+		if @plugins.include?(name)
+			raise "Plugin #{name} already loaded in client"
 		end
-		Sources.require("src/plugins/" + id.to_s + ".rb")
-		plugin = Kernel.const_get(id).new
+		Sources::require("src/plugins/#{name}.rb")
+		plugin = Kernel::const_get(name).new
 		plugin.client = self
-		@plugins[id] = plugin
+		@plugins[name] = plugin
 	end
 
-	def add_plugins(ids)
-		ids.each {|plugin| add_plugin(plugin) }
-	end
-
-	def remove_plugin(id)
-		unless @plugins.include?(id)
-			raise "Plugin #{id} not loaded in client #{id}"
+	def remove_plugin(name)
+		if not @plugins.include?(name)
+			raise "Plugin #{name} not present in client"
 		end
-		plugin = @plugins[id]
-		@plugins.delete(id)
+		@plugins.delete(name)
 		if @plugins.empty?
 			@ircsocket.quit
 		end
-	end
-
-	def remove_plugins(ids)
-		id.each {|plugin| remove_plugin(plugin) }
 	end
 
 	def emit(sym, *params)
