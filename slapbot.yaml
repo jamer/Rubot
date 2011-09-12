@@ -1,14 +1,12 @@
-main:
-  nick: SlapBot
-  username: slappy
-  realname: SlapBot
+nick: SlapBot
+username: slappy
+realname: SlapBot
 
-  address: irc.n0v4.com
-  port: 6669
-  channels:
-    - lobby
-    - bots
+address: lalia.datnode.net
+port: 6669
+channels:
+  - bots
 
-  plugins:
-    - Slap
+plugins:
+  - Slap
 

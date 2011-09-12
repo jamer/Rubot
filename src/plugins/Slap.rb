@@ -140,7 +140,7 @@ class Slap < RubotPlugin
 		target = match[1]
 		target = "itself" if target.downcase.include? @client.nick.downcase
 		say reply_to,
-				"slaps #{target} around a bit with #{@fish.choice}.", :action
+				"slaps #{target} around a bit with #{@fish.random}.", :action
 
 		flinch reply_to if %w(himself herself itself).include? target
 	end
