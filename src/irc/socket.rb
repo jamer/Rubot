@@ -106,7 +106,7 @@ class IRCSocket
 		/^315/ => :handle_who_end,
 
 		#         nick  user  host     real
-		/^311 \S+ (\S+) (\S+) (\S+) * :(.+)$/ => :handle_whois_user,
+		/^311 \S+ (\S+) (\S+) (\S+) \* :(.+)$/ => :handle_whois_user,
 		/^307 \S+ (\S+)/ => :handle_whois_registered,
 		/^319 \S+ (\S+) :(.*)/ => :handle_whois_channels,
 		/^318/ => :handle_whois_end,
