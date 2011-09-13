@@ -11,30 +11,30 @@ class Urban < RubotPlugin
 		@cooldown = 5
 	end
 
-	def on_privmsg(user, reply_to, message)
+	def on_privmsg(user, source, message)
 		return false unless (match = message.match /:urban (.+)/)
-		return false if too_soon reply_to
+		return false if too_soon(source)
 		word = match[1]
-		definition = urban word
-		say reply_to, definition
+		definition = urban(word)
+		say(source, definition)
 		return true
 	end
 
-	def too_soon(reply_to)
+	def too_soon(source)
 		time = Time.now
 		if time.to_i < @last.to_i + @cooldown
-			say reply_to, "I can only do a urban lookup every #{@cooldown} seconds." 
+			say(source, "I can only do an urban lookup every #{@cooldown} seconds." )
 			return true
+		else
+			return false
 		end
-		return false
 	end
 
 	def urban(word)
 		@last = Time.now
-
-		html = open "http://www.urbandictionary.com/define.php?term=#{word}"
-		doc = Nokogiri::HTML html
-		definitions = doc.xpath "//div[@class='definition']"
+		html = open("http://www.urbandictionary.com/define.php?term=#{word}")
+		doc = Nokogiri::HTML(html)
+		definitions = doc.xpath("//div[@class='definition']")
 		definition = definitions[0].content
 	end
 end
