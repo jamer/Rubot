@@ -4,6 +4,10 @@ require 'openssl'
 require 'rubygems'
 require 'andand'
 
+# Demonstratory class only. Shows that subclasses listen to an IRCSocket.
+class IRCSocketListener
+end
+
 # Implementation of the bare IRC protocol. There is very little logic in this
 # class. It simply abstracts the textual and networked properties of the IRC
 # protocol.
@@ -17,6 +21,8 @@ class IRCSocket
 		:privmsg => "PRIVMSG %s :%s",
 		:action => "PRIVMSG %s :\001ACTION %s\001",
 		:notice => "NOTICE %s :%s",
+
+		:whois => "WHOIS %s",
 
 		:quit => "QUIT",
 	}.each do |command, message|
@@ -84,16 +90,29 @@ class IRCSocket
 	end
 
 	@@inputs = {
-		/^PRIVMSG (\S+) :(.+)/i => :privmsg_input,
-		/^353 \S+ = (#\S+) :(.+)/ => :names_list,
-		/^366 \S+ (#\S+)/ => :end_of_names_list,
-		/^JOIN :?(.+)/i => :user_join,
-		/^PART :?(.+)/i => :user_part,
-		/^NICK :?(.+)/i => :user_changed_nick,
-		/^KICK (\S+) (\S+) :?(\S+)/i => :user_kicked,
+		/^PRIVMSG (\S+) :(.+)/i => :handle_privmsg,
+		/^JOIN :?(.+)/i => :handle_someone_joined,
+		/^PART :?(.+)/i => :handle_someone_parted,
+		/^NICK :?(.+)/i => :handle_someone_changed_nick,
+		/^KICK (\S+) (\S+) :?(\S+)/i => :handle_someone_kicked,
+		/^353 \S+ = (#\S+) :(.+)/ => :handle_names_list,
+		/^366 \S+ (#\S+)/ => :handle_names_list_end,
+
+		#         nick  user  host     real
+		/^311 \S+ (\S+) (\S+) (\S+) * :(.+)$/ => :handle_whois_user,
+		/^307 \S+ (\S+)/ => :handle_whois_registered,
+		/^319 \S+ (\S+) :(.*)/ => :handle_whois_channels,
+		/^318/ => :handle_whois_end,
 	}
 
 	def process_line(line)
+		# Handle fatal errors from the server.
+		if line =~ /^ERROR/
+			@connected = false
+			@socket.close
+			return
+		end
+
 		# Handle pings.
 		if line =~ /^PING :(.+)/i
 			write("PONG #{$1}")
@@ -104,7 +123,7 @@ class IRCSocket
 		nick, username, host = line.scrape!(/^:(\S+?)!(\S+?)@(\S+?)\s+/)
 		if nick
 			user = Users[nick]
-			user.user_name = username
+			user.username = username
 			user.host = host
 			base_args = [user]
 		else
