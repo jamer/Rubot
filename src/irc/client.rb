@@ -131,7 +131,6 @@ class IRCClient < IRCSocketListener
 		user.nick = new
 
 		# Update references to this user
-		# FIXME needs access to presences
 		user.each_presence do |channel_name, _|
 			channel = @channels[channel_name]
 			channel.users[new] = user
