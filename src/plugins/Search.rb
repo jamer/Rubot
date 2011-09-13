@@ -9,50 +9,81 @@ require 'uri'
 
 require 'rubygems'
 require 'andand'
+require 'nokogiri'
 
 class Search < RubotPlugin
 	@@actions = {
 		/:search\s*(.+)/i => :search,
-		/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i => :search11,
-		/^(t+e+l+l+)\s+(m+e+|u+s+|e+v+e+r+y+o+n+e+)\s+(w+(h+)?a+t+|w+h+o+|(a+)?b+o+u+t+)\s+(i+s+|a+(n+)?|)+(.+?)(\s+i+s+|\/|\\|\.|\?|!|$)/i => :search8,
-		/^jamer(\S+)?(:|,)?\s+(hi|hello|sup|yo)/i => :say_hi,
+		/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+|\s+a+r+e+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i => :search11,
+		/^(t+e+l+l+)\s+(m+e+|u+s+|e+v+e+r+y+o+n+e+|h+i+m+|h+e+r+|t+h+e+m+)\s+(w+(h+)?a+t+|w+h+o+|(a+)?b+o+u+t+)\s+(i+s+|a+(n+)?|a+r+e+|)+(.+?)(\s+i+s+|\s+a+r+e+|\/|\\|\.|\?|!|$)/i => :search8,
+		/^jamer(\S*)?(:|,)?\s+(hi|hello|sup|yo)/i => :say_hi,
 		/^(hi|hello|sup|yo)(.+?)?\s+jamer/i => :say_hi,
 	}
 
+	def initialize
+		@cache = Hash.new
+	end
+
 	def on_privmsg(user, source, line)
-		if line.match(/#{@client.nick}/i) or line.match(/jamerbot/)
-			mkay(source)
-		end
-		line.gsub!(/#{@client.nick}:?\s+/, '')
+		mkay(source) if line.match(/#{@client.nick}/i) or line.match(/jamerbot/)
+		line.gsub!(/^\s*#{@client.nick}:?\s+/, "")
 		return RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 
-	def fetch_info(terms)
-		formatted = URI::escape(terms.gsub(' ','+'))
-		data = open("http://api.duckduckgo.com/?q=#{formatted}&o=json")
-		json = JSON::parse(data.readlines.join('\n'))
-		return json
+	def search8(nick, source, *unused, term, x)
+		search(nick, source, term)
 	end
 
-	def search(nick, source, message)
-		json = fetch_info(message)
+	def search11(nick, source, *unused, term, x)
+		search(nick, source, term)
+	end
+
+	def search(nick, source, term)
+		@cache[term] = lookup(term) if not @cache.include?(term)
+		answer = @cache[term]
+		say(source, answer)
+	end
+
+	def lookup(term)
+		query = URI::escape(term.gsub(' ', '+'))
+		x = [
+			proc {|query| ddg(query) },
+			proc {|query| urban(query) },
+			proc {|query| "I don't know." },
+		].map_first {|p| p.call(query) }
+		return x
+	end
+
+	def ddg(query)
+		response = open("http://api.duckduckgo.com/?q=#{query}&o=json")
+		json = JSON::parse(response.readlines.join('\n'))
 		output = [
-				json['AbstractText'],
-				json['RelatedTopics'].at(0).andand['Text']
-		].delete_if {|x| !x || x.length == 0 }.first
+				json["AbstractText"],
+				json["RelatedTopics"].at(0).andand["Text"],
+		].find {|x| x && x.length > 0 }
 		if output
-			say(source, output.gsub(/<.*?>/, ''))
+			return output.gsub(/<.*?>/, "") # strip HTML
 		else
-			say(source, "I don't know.")
+			return nil
 		end
 	end
 
-	def search8(nick, source, *unused, message, x)
-		search(nick, source, message)
-	end
+	def urban(query)
+		html = open("http://www.urbandictionary.com/define.php?term=#{query}")
+		doc = Nokogiri::HTML(html)
+		words = doc.xpath("//td[@class='word']")
+		definitions = doc.xpath("//div[@class='definition']")
 
-	def search11(nick, source, *unused, message, x)
-		search(nick, source, message)
+		looking_for = query.gsub('+', ' ').downcase
+		first_result = words[0].andand.content.strip.downcase
+		definition = definitions[0].andand.content
+
+		# Urban gives us results that we weren't looking for.
+		if first_result == looking_for and definition
+			return definition.split(/[\r\n]+/).join("  ") # join lines
+		else
+			return nil
+		end
 	end
 
 	def say_hi(nick, source, *unused)
@@ -60,9 +91,7 @@ class Search < RubotPlugin
 	end
 
 	def mkay(source)
-		if rand % 10 == 0
-			say(source, "Mkay.")
-		end
+		say(source, "Mkay.") if rand % 10 == 0
 	end
 end
 

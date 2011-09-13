@@ -3,7 +3,7 @@ username: searchbot
 realname: searchbot
 
 address: lalia.datnode.net
-port: 6669
+port: 6697
 channels:
   - bots
 

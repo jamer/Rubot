@@ -131,11 +131,12 @@ class IRCClient < IRCSocketListener
 		user.nick = new
 
 		# Update references to this user
-		user.presences.each do |channel_name, _|
-			channel = @channels[channel_name]
-			channel.users[new] = user
-			channel.users.delete(old)
-		end
+		# FIXME needs access to presences
+#		user.presences.each do |channel_name, _|
+#			channel = @channels[channel_name]
+#			channel.users[new] = user
+#			channel.users.delete(old)
+#		end
 	end
 
 	def handle_someone_kicked(src, channel, target, reason)
@@ -177,7 +178,7 @@ class IRCClient < IRCSocketListener
 	end
 
 	def handle_who_end
-		# No-op
+		# Remove users we think we see, yet that WHO didn't return?
 	end
 
 	def handle_whois_user(nick, username, host, realname)

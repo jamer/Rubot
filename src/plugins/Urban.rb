@@ -11,8 +11,8 @@ class Urban < RubotPlugin
 		@cooldown = 5
 	end
 
-	def on_privmsg(user, source, message)
-		return false unless (match = message.match /:urban (.+)/)
+	def on_privmsg(user, source, line)
+		return false unless (match = line.match /:urban (.+)/)
 		return false if too_soon(source)
 		word = match[1]
 		definition = urban(word)
@@ -23,7 +23,7 @@ class Urban < RubotPlugin
 	def too_soon(source)
 		time = Time.now
 		if time.to_i < @last.to_i + @cooldown
-			say(source, "I can only do an urban lookup every #{@cooldown} seconds." )
+			say(source, "I can only do an urban lookup every #{@cooldown} seconds.")
 			return true
 		else
 			return false
