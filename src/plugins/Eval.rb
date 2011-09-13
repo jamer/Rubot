@@ -33,6 +33,5 @@ class Eval < RubotPlugin
 	def method_missing(symbol, *args)
 			@client.send symbol, *args
 	end
-
 end
 

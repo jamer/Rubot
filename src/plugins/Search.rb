@@ -13,15 +13,16 @@ require 'nokogiri'
 
 class Search < RubotPlugin
 	@@actions = {
-		/:search\s*(.+)/i => :search,
+		/:search\s*(.+)/i => :search1,
 		/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+|\s+a+r+e+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i => :search11,
 		/^(t+e+l+l+)\s+(m+e+|u+s+|e+v+e+r+y+o+n+e+|h+i+m+|h+e+r+|t+h+e+m+)\s+(w+(h+)?a+t+|w+h+o+|(a+)?b+o+u+t+)\s+(i+s+|a+(n+)?|a+r+e+|)+(.+?)(\s+i+s+|\s+a+r+e+|\/|\\|\.|\?|!|$)/i => :search8,
-		/^jamer(\S*)?(:|,)?\s+(hi|hello|sup|yo)/i => :say_hi,
-		/^(hi|hello|sup|yo)(.+?)?\s+jamer/i => :say_hi,
+		/^jamer(\S*)?(:|,)?\s+(hi|hey|hello|sup|yo)/i => :say_hi,
+		/^(hi|hey|hello|sup|yo)(.+?)?\s+jamer/i => :say_hi,
 	}
 
 	def initialize
 		@cache = Hash.new
+		@cooldown = IRCCooldown.new(self, 5, "You're searching too fast. Wait %d more second%s.")
 	end
 
 	def on_privmsg(user, source, line)
@@ -30,12 +31,16 @@ class Search < RubotPlugin
 		return RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 
+	def search1(nick, source, term)
+		search(nick, source, term) if @cooldown.trigger_err(source)
+	end
+
 	def search8(nick, source, *unused, term, x)
-		search(nick, source, term)
+		search(nick, source, term) if @cooldown.trigger
 	end
 
 	def search11(nick, source, *unused, term, x)
-		search(nick, source, term)
+		search(nick, source, term) if @cooldown.trigger
 	end
 
 	def search(nick, source, term)
