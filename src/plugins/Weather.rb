@@ -11,7 +11,7 @@ class Weather < RubotPlugin
 		@cooldown = 5
 	end
 
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		match = message.match /^:weather (\d+)/
 		return false unless match
 		return false if too_soon reply_to

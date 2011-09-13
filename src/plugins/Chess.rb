@@ -65,7 +65,7 @@ class Game
 end
 
 class Chess < RubotPlugin
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [user, source])
 	end
 

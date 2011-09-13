@@ -7,7 +7,7 @@ class Quote < RubotPlugin
 		/^:find (.+)/i => :find,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end
 

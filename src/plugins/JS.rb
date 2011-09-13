@@ -11,7 +11,7 @@ class JS < RubotPlugin
 		end
 	end
 
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		match = message.match(/^js> (.+)/i)
 		return false if !match
 		expression = match[1]

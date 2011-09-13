@@ -5,7 +5,7 @@ class GuessGame < RubotPlugin
 		/:#\s*(\d+)/ => :do_guess,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 

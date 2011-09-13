@@ -176,7 +176,7 @@ class Tweet < RubotPlugin
 		end
 	end
 	
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		if message =~ /^!follow ([A-Za-z0-9_]+)$/ then
 			username = $1.to_sym
 			if @accounts.include? username then

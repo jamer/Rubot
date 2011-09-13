@@ -7,7 +7,7 @@ class Rage < RubotPlugin
 		@cnt = 0
 	end
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 

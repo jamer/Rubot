@@ -23,7 +23,7 @@ class AnnounceURL < RubotPlugin
 		['youtube.com', false],
 	]
 
-	def privmsg user, reply_to, message
+	def on_privmsg user, reply_to, message
 		search_for_shortened_urls reply_to, message
 	end
 

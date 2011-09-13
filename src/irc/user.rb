@@ -43,16 +43,15 @@ class User
 	def remove_presence(channel)
 		@presences.delete(channel)
 		if @presences.size == 0
-			Users::delete(nick)
+			Users::delete(@nick)
 		end
 	end
 
 	def to_s
-		if @username and @host
-			return "#{@nick}!#{@username}@#{@host}"
-		else
-			return "#{nick}"
-		end
+		s = @nick
+		s += "!#{@username}@#{@host}" if @username and @host
+		s += ", registered" if @registered
+		return s
 	end
 
 	def eql?(user)

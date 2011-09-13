@@ -11,7 +11,7 @@ class Urban < RubotPlugin
 		@cooldown = 5
 	end
 
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		return false unless (match = message.match /:urban (.+)/)
 		return false if too_soon reply_to
 		word = match[1]

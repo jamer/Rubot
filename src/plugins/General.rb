@@ -8,7 +8,7 @@ class General < RubotPlugin
 		/^:leave$/i => :part_this,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end
 
@@ -34,7 +34,7 @@ class General < RubotPlugin
 		@client.part(source)
 	end
 
-	def invite(user, channel)
+	def on_invite(user, channel)
 		@client.join(channel)
 	end
 end

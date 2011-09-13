@@ -21,7 +21,7 @@ class Librarian < RubotPlugin
 		/^help$/i => :help,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return false unless line =~ /^>(.+)/i
 		command = $1.strip
 		@source = source

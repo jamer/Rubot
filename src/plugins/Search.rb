@@ -19,7 +19,7 @@ class Search < RubotPlugin
 		/^(hi|hello|sup|yo)(.+?)?\s+jamer/i => :say_hi,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		if line.match(/#{@client.nick}/i) or line.match(/jamerbot/)
 			mkay(source)
 		end

@@ -11,7 +11,7 @@ class Bash < RubotPlugin
 		@cooldown = 5
 	end
 
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		return false if message != ":bash"
 		return false if too_soon reply_to
 		bash reply_to

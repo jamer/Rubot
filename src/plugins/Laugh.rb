@@ -10,7 +10,7 @@ class Laugh < RubotPlugin
 		/laugh\s*(\d+\.?\d?)/i => :laugh,
 	}
 
-	def privmsg(user, source, line)
+	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end
 

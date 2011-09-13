@@ -5,7 +5,7 @@ class Eval < RubotPlugin
 		@eval_timeout = 2
 	end
 
-	def privmsg(user, reply_to, message)
+	def on_privmsg(user, reply_to, message)
 		match = message.match(/^do (.+)/i)
 		return false if !match
 		expression = match[1]

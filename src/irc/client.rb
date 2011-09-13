@@ -97,15 +97,17 @@ class IRCClient < IRCSocketListener
 	def handle_privmsg(user, target, message)
 		private_message = (target == @nick)
 		reply_to = private_message ? user.nick : target
-		emit(:privmsg, user, reply_to, message.to_s)
+		emit(:on_privmsg, user, reply_to, message.to_s)
 	end
 
 	def handle_someone_joined(user, channel)
 		user.add_presence(channel)
 		@channels[channel].users[user.nick] = user
+		emit(:on_join, user, channel)
 	end
 
 	def handle_someone_parted(user, channel)
+		emit(:on_part, user, channel)
 		if user.nick == @nick
 			# If we part
 			return unless @channels.include?(channel)
@@ -142,7 +144,7 @@ class IRCClient < IRCSocketListener
 
 	def handle_invite(user, channel)
 		# user has invited us to a channel
-		emit(:invite, user, channel)
+		emit(:on_invite, user, channel)
 	end
 
 	def handle_names_list(channel, line_of_names)
@@ -171,7 +173,7 @@ class IRCClient < IRCSocketListener
 		user.host = host
 		user.add_presence(channel)
 		user.registered = true if umode.include?("r")
-		emit(:who, user)
+		emit(:on_who, user)
 	end
 
 	def handle_who_end
@@ -220,7 +222,7 @@ class IRCClient < IRCSocketListener
 
 		@whois = Hash.new
 
-		emit(:whois, user)
+		emit(:on_whois, user)
 	end
 end
 
