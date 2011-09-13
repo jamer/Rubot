@@ -22,6 +22,7 @@ class IRCSocket
 		:action => "PRIVMSG %s :\001ACTION %s\001",
 		:notice => "NOTICE %s :%s",
 
+		:who => "WHO *",
 		:whois => "WHOIS %s",
 
 		:quit => "QUIT",
@@ -91,12 +92,18 @@ class IRCSocket
 
 	@@inputs = {
 		/^PRIVMSG (\S+) :(.+)/i => :handle_privmsg,
-		/^JOIN :?(.+)/i => :handle_someone_joined,
-		/^PART :?(.+)/i => :handle_someone_parted,
+		/^JOIN :(#\S+)/i => :handle_someone_joined,
+		/^PART (#\S+)/i => :handle_someone_parted,
 		/^NICK :?(.+)/i => :handle_someone_changed_nick,
 		/^KICK (\S+) (\S+) :?(\S+)/i => :handle_someone_kicked,
+		/^INVITE \S+ :(#\S+)/i => :handle_invite,
+
 		/^353 \S+ = (#\S+) :(.+)/ => :handle_names_list,
 		/^366 \S+ (#\S+)/ => :handle_names_list_end,
+
+		#         chan  user  host  srv nick  umode ??  real
+		/^352 \S+ (\S+) (\S+) (\S+) \S+ (\S+) (\S+) :\d+ (.+)$/ => :handle_who,
+		/^315/ => :handle_who_end,
 
 		#         nick  user  host     real
 		/^311 \S+ (\S+) (\S+) (\S+) * :(.+)$/ => :handle_whois_user,

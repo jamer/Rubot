@@ -1,9 +1,9 @@
 # General use IRC bot
 class General < RubotPlugin
 	@@actions = {
-		/^:join (#.+)/i => :join,
-		/^:part (#.+)/i => :part,
-		/^:leave (#.+)/i => :part,
+		/^:join (.+)/i => :join,
+		/^:part (.+)/i => :part,
+		/^:leave (.+)/i => :part,
 		/^:part$/i => :part_this,
 		/^:leave$/i => :part_this,
 	}
@@ -12,24 +12,26 @@ class General < RubotPlugin
 		return RegexJump::jump(@@actions, self, line, [source])
 	end
 
-	def join(source, channel)
-		@client.join(channel)
+	def join(source, channels)
+		channels = channels.to_s if channels.is_a?(Integer)
+		channels.split(",").each do |channel|
+			next if channel.empty?
+			channel = "#" + channel unless channel[0,1] == "#"
+			@client.join(channel)
+		end
 	end
 
-	def part(source, channel)
-		@client.part(channel)
+	def part(source, channels)
+		channels = channels.to_s if channels.is_a?(Integer)
+		channels.split(",").each do |channel|
+			next if channel.empty?
+			channel = "#" + channel unless channel[0,1] == "#"
+			@client.part(channel)
+		end
 	end
 
 	def part_this(source)
 		@client.part(source)
-	end
-
-	@@raw_handlers = {
-		/^INVITE \S+ :(#.+)/i => :invite
-	}
-
-	def raw(user, line)
-		return RegexJump::jump(@@raw_handlers, self, line, [user])
 	end
 
 	def invite(user, channel)

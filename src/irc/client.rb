@@ -76,24 +76,18 @@ class IRCClient < IRCSocketListener
 	end
 
 	def join(name)
-		if @channels.include?(name)
-			puts "Trying to join channel #{name} but I think I'm already in it."
-			return
-		end
+		return if @channels.include?(name)
 		@ircsocket.join(name)
 		channel = Channel.new(name)
 		@channels[name] = channel
 	end
 
 	def part(name)
-		@ircsocket.part(name)
-		@channels[name].users.each do |nick, user|
-			user_part(user, name)
-		end
-		@channels.delete(name)
-		if @channels.empty?
-			@ircsocket.quit
-		end
+		handle_someone_parted(Users[@nick], name)
+	end
+
+	def who
+		@ircsocket.who
 	end
 
 	def whois(name)
@@ -109,15 +103,24 @@ class IRCClient < IRCSocketListener
 	def handle_someone_joined(user, channel)
 		user.add_presence(channel)
 		@channels[channel].users[user.nick] = user
-		puts "SEE JOIN #{user.nick}"
-		puts "USERS #{@channels[channel].users}"
 	end
 
 	def handle_someone_parted(user, channel)
-		user.remove_presence(channel)
-		@channels[channel].users.delete(user.nick)
-		puts "SEE LEAVE #{user.nick}"
-		puts "USERS #{@channels[channel].users}"
+		if user.nick == @nick
+			# If we part
+			return unless @channels.include?(channel)
+			@channels[channel].users.each do |nick, user|
+				handle_someone_parted(user, channel) if user.nick != @nick
+			end
+			@channels.delete(channel)
+			if @channels.empty?
+				@ircsocket.quit
+			end
+			@ircsocket.part(channel)
+		else
+			user.remove_presence(channel)
+			@channels[channel].users.delete(user.nick)
+		end
 	end
 
 	def handle_someone_changed_nick(user, new)
@@ -134,20 +137,12 @@ class IRCClient < IRCSocketListener
 	end
 
 	def handle_someone_kicked(src, channel, target, reason)
-		if not target == @nick
-			puts "SOMEONE WAS KICKED"
-			handle_someone_parted(Users[target], channel)
-		else # if target == @nick
-			# If we get kicked
-			puts "WE WERE KICKED"
-			@channels[channel].users.each do |nick, user|
-				handle_someone_parted(user, channel)
-			end
-			@channels.delete(channel)
-			if @channels.empty?
-				@ircsocket.quit
-			end
-		end
+		handle_someone_parted(Users[target], channel)
+	end
+
+	def handle_invite(user, channel)
+		# user has invited us to a channel
+		emit(:invite, user, channel)
 	end
 
 	def handle_names_list(channel, line_of_names)
@@ -169,9 +164,23 @@ class IRCClient < IRCSocketListener
 		ch.new_users = Hash.new
 	end
 
-	def handle_whois_user(nick, user, host, real)
+	def handle_who(channel, username, host, nick, umode, realname)
+		return if channel == "*" # Network services are listed here
+		user = Users[nick]
+		user.username = username
+		user.host = host
+		user.add_presence(channel)
+		user.registered = true if umode.include?("r")
+		emit(:who, user)
+	end
+
+	def handle_who_end
+		# No-op
+	end
+
+	def handle_whois_user(nick, username, host, realname)
 		@whois[:nick] = nick
-		@whois[:user] = user
+		@whois[:username] = username
 		@whois[:host] = host
 	end
 
@@ -194,7 +203,7 @@ class IRCClient < IRCSocketListener
 
 	def handle_whois_end
 		nick = @whois[:nick]
-		username = @whois[:user]
+		username = @whois[:username]
 		host = @whois[:host]
 		registered = @whois[:registered]
 		channels = @whois[:channels]
@@ -210,13 +219,6 @@ class IRCClient < IRCSocketListener
 		@whois = Hash.new
 
 		emit(:whois, user)
-	end
-
-	def handle_who
-	end
-
-	def handle_who_end
-		emit(:who)
 	end
 end
 

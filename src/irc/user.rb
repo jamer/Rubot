@@ -33,7 +33,7 @@ class User
 	end
 
 	def add_presence(channel)
-		@presences[channel] = ChannelEveryone
+		@presences[channel] = ChannelEveryone if not @presences.include?(channel)
 	end
 
 	def add_presence_as(channel, sigil)
