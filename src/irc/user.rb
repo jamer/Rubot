@@ -18,6 +18,7 @@ class User
 	def nick=(n)
 		Users::delete(@nick)
 		@nick = n
+		@registered = false
 		Users[n] = self
 	end
 
@@ -45,6 +46,10 @@ class User
 		if @presences.size == 0
 			Users::delete(@nick)
 		end
+	end
+
+	def each_presence(&block)
+		@presences.each(&block)
 	end
 
 	def to_s

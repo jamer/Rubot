@@ -132,11 +132,11 @@ class IRCClient < IRCSocketListener
 
 		# Update references to this user
 		# FIXME needs access to presences
-#		user.presences.each do |channel_name, _|
-#			channel = @channels[channel_name]
-#			channel.users[new] = user
-#			channel.users.delete(old)
-#		end
+		user.each_presence do |channel_name, _|
+			channel = @channels[channel_name]
+			channel.users[new] = user
+			channel.users.delete(old)
+		end
 	end
 
 	def handle_someone_kicked(src, channel, target, reason)
