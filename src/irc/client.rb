@@ -212,8 +212,10 @@ class IRCClient < IRCSocketListener
 		user.username = username
 		user.host = host
 		user.registered = registered if registered
-		channels.each do |name, sigil|
-			user.add_presence_as(name, sigil)
+		if channels
+			channels.each do |name, sigil|
+				user.add_presence_as(name, sigil)
+			end
 		end
 
 		@whois = Hash.new
