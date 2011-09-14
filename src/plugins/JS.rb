@@ -5,6 +5,7 @@ class JS < RubotPlugin
 	include Math
 
 	def initialize
+		super
 		PTY.spawn "js" do |reader, writer, pid|
 			@pty_reader = reader
 			@pty_writer = writer

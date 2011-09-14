@@ -48,6 +48,11 @@ class User
 		end
 	end
 
+	def privilege(channel)
+		return @presences[channel] if @presences.include?(channel)
+		return nil
+	end
+
 	def each_presence(&block)
 		@presences.each(&block)
 	end

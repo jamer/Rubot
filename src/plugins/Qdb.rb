@@ -7,6 +7,7 @@ class Qdb < RubotPlugin
 	attr_accessor :cooldown
 
 	def initialize
+		super
 		@last = 0
 		@cooldown = 15
 	end

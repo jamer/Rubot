@@ -130,6 +130,10 @@ class Slap < RubotPlugin
 		]
 	end
 
+	def initialize
+		super
+	end
+
 	def on_privmsg(user, reply_to, message)
 		slap reply_to, message
 		flinch reply_to if got_slapped message

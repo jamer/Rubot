@@ -7,6 +7,7 @@ class Bash < RubotPlugin
 	attr_accessor :cooldown
 
 	def initialize
+		super
 		@last = 0
 		@cooldown = 5
 	end

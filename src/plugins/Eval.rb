@@ -2,6 +2,7 @@ class Eval < RubotPlugin
 	include Math
 
 	def initialize
+		super
 		@eval_timeout = 2
 	end
 

@@ -4,6 +4,7 @@ class Rage < RubotPlugin
 	}
 
 	def initialize
+		super
 		@cnt = 0
 	end
 

@@ -21,6 +21,7 @@ class Search < RubotPlugin
 	}
 
 	def initialize
+		super
 		@cache = Hash.new
 		@cooldown = IRCCooldown.new(self, 5, "You're searching too fast. Wait %d more second%s.")
 	end

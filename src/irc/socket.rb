@@ -62,9 +62,12 @@ class IRCSocket
 			@connected = false
 			@socket.close
 		else
-			line = @socket.gets.chomp
-			log("<-- #{line}") if @log_input
-			process_line(line)
+			buf = @socket.readpartial(1024*1024)
+			buf.split($/).each do |line|
+				line.chomp!
+				log("<-- #{line}") if @log_input
+				process_line(line)
+			end
 		end
 	end
 

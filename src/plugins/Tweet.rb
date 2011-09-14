@@ -5,6 +5,7 @@ require 'htmlentities'
 
 class Tweet < RubotPlugin
 	def initialize
+		super
 		@accounts = {:wikileaks => 0, :wired => 0}
 		@index = 0
 		@needs_to_be_said = []

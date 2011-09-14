@@ -1,5 +1,4 @@
 class Lonely < RubotPlugin
-
 	attr_accessor :chance
 
 	@@messages = [
@@ -10,6 +9,7 @@ class Lonely < RubotPlugin
 	]
 
 	def initialize
+		super
 		@chance = 2
 	end
 
@@ -18,6 +18,5 @@ class Lonely < RubotPlugin
 		speak = i < @chance
 		say reply_to, @@messages.random if speak
 	end
-
 end
 

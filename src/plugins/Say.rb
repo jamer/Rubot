@@ -4,6 +4,10 @@ class Say < RubotPlugin
 		/^tell (\S+) (.+)/i => :speak_to,
 	}
 
+	def initialize
+		super
+	end
+
 	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end

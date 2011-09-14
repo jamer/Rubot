@@ -7,6 +7,10 @@ class Quote < RubotPlugin
 		/^:find (.+)/i => :find,
 	}
 
+	def initialize
+		super
+	end
+
 	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end

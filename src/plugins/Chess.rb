@@ -5,6 +5,7 @@ class Square
 	attr_accessor :piece, :color
 
 	def initialize(piece_char, color)
+		super
 		@piece = get_piece_by_char(piece_char)
 		@color = color
 	end

@@ -21,6 +21,10 @@ class Librarian < RubotPlugin
 		/^help$/i => :help,
 	}
 
+	def initialize
+		super
+	end
+
 	def on_privmsg(user, source, line)
 		return false unless line =~ /^>(.+)/i
 		command = $1.strip

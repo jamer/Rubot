@@ -6,6 +6,10 @@ class Presence < RubotPlugin
 		/^:who$/i => :scan_who,
 	}
 
+	def initialize
+		super
+	end
+
 	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end

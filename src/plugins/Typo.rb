@@ -2,6 +2,8 @@
 class Typo < RubotPlugin
 
 	def initialize
+		super
+
 		# Remember this many previous lines for each user.
 		@remembered = 10
 

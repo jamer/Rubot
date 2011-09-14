@@ -4,6 +4,7 @@ require 'uri'
 
 class Omegle < RubotPlugin
 	def initialize
+		super
 		@t = nil
 	end
 

@@ -1,5 +1,5 @@
 #!/bin/bash
 
 ulimit -u 200
-sudo -u nobody ruby1.9.1 start.rb $*
+sudo -u nobody ruby start.rb $*
 
