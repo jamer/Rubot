@@ -152,8 +152,8 @@ private
 		end
 
 		# Handle pings.
-		if line =~ /^PING :(.+)/i
-			write("PONG #{$1}")
+		if line =~ /^PING(.*)/i
+			write("PONG#{$1}")
 			return
 		end
 
