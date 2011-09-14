@@ -1,6 +1,6 @@
 
 def log(msg)
-	line = "[#{Time.new.strftime("%a %H:%M:%S")}] #{msg}"
+	line = "[#{Time.now.strftime("%F %T")}] #{msg}"
 	puts line
 	open "log.txt", "a" do |f|
 		f.puts line
