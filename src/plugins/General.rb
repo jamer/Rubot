@@ -6,6 +6,8 @@ class General < RubotPlugin
 		/^:leave (.+)/i => :part,
 		/^:part$/i => :part_this,
 		/^:leave$/i => :part_this,
+		/^:rejoin (.*)/i => :rejoin,
+		/^:norejoin (.*)/i => :norejoin,
 	}
 
 	def on_privmsg(user, source, line)
@@ -32,6 +34,24 @@ class General < RubotPlugin
 
 	def part_this(source)
 		@client.part(source)
+	end
+
+	def rejoin(source, channels)
+		channels = channels.to_s if channels.is_a?(Integer)
+		channels.split(",").each do |channel|
+			next if channel.empty?
+			channel = "#" + channel unless channel[0,1] == "#"
+			@client.channels[channel].rejoin = true
+		end
+	end
+
+	def norejoin(source, channels)
+		channels = channels.to_s if channels.is_a?(Integer)
+		channels.split(",").each do |channel|
+			next if channel.empty?
+			channel = "#" + channel unless channel[0,1] == "#"
+			@client.channels[channel].rejoin = false
+		end
 	end
 
 	def on_invite(user, channel)

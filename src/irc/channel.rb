@@ -1,11 +1,12 @@
 class Channel
 	attr_reader :name
-	attr_accessor :users, :new_users
+	attr_accessor :users, :new_users, :rejoin
 
 	def initialize(name)
 		@name = name
-		@new_users = Hash.new
 		@users = Hash.new
+		@new_users = Hash.new
+		@rejoin = false
 	end
 end
 
