@@ -4,7 +4,7 @@ require 'openssl'
 require 'rubygems'
 require 'andand'
 
-# Demonstratory class only. Shows that subclasses listen to an IRCSocket.
+# Semantic class only. Shows that subclasses listen to an IRCSocket.
 class IRCSocketListener
 end
 
@@ -12,47 +12,28 @@ end
 # class. It simply abstracts the textual and networked properties of the IRC
 # protocol.
 class IRCSocket
-	# Lets create our IRC commands
-	{
-		:login => "USER %s %s %s :%s",
-		:umode => "MODE %s %s",
-		:nickname => "NICK %s",
-
-		:privmsg => "PRIVMSG %s :%s",
-		:action => "PRIVMSG %s :\001ACTION %s\001",
-		:notice => "NOTICE %s :%s",
-
-		:who => "WHO *",
-		:whois => "WHOIS %s",
-
-		:quit => "QUIT",
-	}.each do |command, message|
-		define_method(command) do |*args|
-			write(message % args) if @connected
-		end
-	end
-
-	attr_reader :server, :port
+	attr_reader :host, :port
 	attr_accessor :log_input, :log_output
 
-	def initialize(server, port)
-		@server = server
+	def initialize(host, port)
+		@host = host
 		@port = port
 		@log_input = @log_output = true
-		@listeners = Array.new
 		@connected = false
+		@listeners = Array.new
+		@last_active = Time.now
 	end
 
 	def connect
 		# Connect to the IRC server. First try using SSL, then fall back to a
 		# regular TCP connection.
-		tcp = TCPSocket.open(@server, @port)
+		tcp = TCPSocket.new(@host, @port)
 		ssl = OpenSSL::SSL::SSLSocket.new(tcp)
 		begin
 			ssl.connect
 			@socket = ssl
 		rescue
-			tcp = TCPSocket.open(@server, @port)
+			tcp = TCPSocket.new(@host, @port)
 			@socket = tcp
 		end
 		@connected = true
@@ -62,20 +43,17 @@ class IRCSocket
 		@listeners << obj
 	end
 
-	def emit(sym, *params)
-		@listeners.each do |obj|
-			obj.send(sym, *params) if obj.respond_to?(sym)
-		end
-	end
-
-	def write(line)
-		# Send a line to the IRC server.
-		log("--> #{line}") if @log_output
-		@socket.write("#{line}\r\n")
+	def connected?
+		return @connected
 	end
 
 	def peek
 		read, write, error = select([@socket], nil, nil, 0)
+		if read
+			@last_active = Time.now
+		else
+			emit(:handle_network_idle, (Time.now - @last_active).to_i)
+		end
 		return read != nil
 	end
 
@@ -90,6 +68,57 @@ class IRCSocket
 		end
 	end
 
+	# Lets create our IRC commands
+	{
+		:login => "USER %s %s %s :%s",
+		:umode => "MODE %s %s",
+		:nickname => "NICK %s",
+
+		:privmsg => "PRIVMSG %s :%s",
+		:action => "PRIVMSG %s :\001ACTION %s\001",
+		:notice => "NOTICE %s :%s",
+
+		:who => "WHO *",
+		:whois => "WHOIS %s",
+	}.each do |command, message|
+		define_method(command) do |*args|
+			write(message % args) if @connected
+		end
+	end
+
+	def join(channel)
+		raise "invalid channel name" unless channel[0,1] == '#'
+		raise "invalid channel name" if channel.include?(',')
+		write("JOIN #{channel}")
+	end
+
+	def part(channel)
+		raise "invalid channel name" unless channel[0,1] == '#'
+		raise "invalid channel name" if channel.include?(',')
+		write("PART #{channel}")
+	end
+
+	def quit
+		# Disconnect from the server.
+		raise "already disconnected" unless @connected
+		write("QUIT")
+		@connected = false
+		@socket.close
+	end
+
+private
+	def emit(sym, *params)
+		@listeners.each do |obj|
+			obj.send(sym, *params) if obj.respond_to?(sym)
+		end
+	end
+
+	def write(line)
+		# Send a line to the IRC server.
+		log("--> #{line}") if @log_output
+		@socket.write("#{line}\r\n")
+	end
+
 	@@inputs = {
 		/^PRIVMSG (\S+) :(.+)/i => :handle_privmsg,
 		/^JOIN :(#\S+)/i => :handle_someone_joined,
@@ -97,6 +126,8 @@ class IRCSocket
 		/^NICK :?(.+)/i => :handle_someone_changed_nick,
 		/^KICK (\S+) (\S+) :?(\S+)/i => :handle_someone_kicked,
 		/^INVITE \S+ :(#\S+)/i => :handle_invite,
+
+		/^001/ => :handle_welcome,
 
 		/^353 \S+ = (#\S+) :(.+)/ => :handle_names_list,
 		/^366 \S+ (#\S+)/ => :handle_names_list_end,
@@ -146,28 +177,6 @@ class IRCSocket
 		else
 			# Unhandled line...
 		end
-	end
-
-	def connected?
-		return @connected
-	end
-
-	def join(channel)
-		raise "invalid channel name" unless channel[0,1] == "#"
-		write("JOIN #{channel}")
-	end
-
-	def part(channel)
-		raise "invalid channel name" unless channel[0,1] == "#"
-		write("PART #{channel}")
-	end
-
-	def quit
-		# Disconnect from the server.
-		raise "already disconnected" unless @connected
-		write("QUIT")
-		@connected = false
-		@socket.close
 	end
 end
 

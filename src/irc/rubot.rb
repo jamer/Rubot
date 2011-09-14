@@ -54,13 +54,13 @@ class Rubot
 
 	def handle_input
 		# Just keep on trucking until we disconnect
-		while sleep(0.01)
-			@sockets = @sockets.find_all {|socket| socket.connected? }
-			abort "Clients list empty, quitting" if @sockets.empty?
+		while @sockets.size > 0 and sleep(1)
 			@sockets.each do |socket|
 				socket.readline while (socket.connected? and socket.peek)
 			end
+			@sockets = @sockets.find_all {|socket| socket.connected? }
 		end
+		log "No connections left, quitting."
 	end
 end
 

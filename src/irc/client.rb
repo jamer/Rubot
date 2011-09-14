@@ -9,7 +9,11 @@ class IRCClient < IRCSocketListener
 		@username = username
 		@realname = realname
 
+		@loggedin = false
+
 		@channels = Hash.new
+		@waiting_channels = Array.new # Channels to join when we finish logging in.
+
 		@plugins = Hash.new
 		@whois = Hash.new
 
@@ -20,7 +24,7 @@ class IRCClient < IRCSocketListener
 		# Connect to the IRC server
 		@ircsocket.connect
 		@ircsocket.nickname(@nick)
-		@ircsocket.login(@username, "localhost", @ircsocket.server, @realname)
+		@ircsocket.login(@username, "localhost", @ircsocket.host, @realname)
 		@ircsocket.umode(@nick, "+B")
 	end
 
@@ -76,10 +80,12 @@ class IRCClient < IRCSocketListener
 	end
 
 	def join(name)
-		return if @channels.include?(name)
-		@ircsocket.join(name)
-		channel = Channel.new(name)
-		@channels[name] = channel
+		if @loggedin
+			return if @channels.include?(name)
+			@ircsocket.join(name)
+		else
+			@waiting_channels << name
+		end
 	end
 
 	def part(name)
@@ -94,6 +100,21 @@ class IRCClient < IRCSocketListener
 		@ircsocket.whois(name)
 	end
 
+	def handle_network_idle(seconds)
+		if seconds == 10 and @channels.empty?
+			log "Idle for 10 seconds without being in any channels. Leaving server."
+			@ircsocket.quit
+		end
+	end
+
+	def handle_welcome
+		@loggedin = true
+		@waiting_channels.each do |channel|
+			join(channel)
+		end
+		@waiting_channels = nil
+	end
+
 	def handle_privmsg(user, target, message)
 		private_message = (target == @nick)
 		reply_to = private_message ? user.nick : target
@@ -102,7 +123,11 @@ class IRCClient < IRCSocketListener
 
 	def handle_someone_joined(user, channel)
 		user.add_presence(channel)
-		@channels[channel].users[user.nick] = user
+		if user.nick == @nick
+			@channels[channel] = Channel.new(channel)
+		else
+			@channels[channel].users[user.nick] = user
+		end
 		emit(:on_join, user, channel)
 	end
 
@@ -115,9 +140,6 @@ class IRCClient < IRCSocketListener
 				handle_someone_parted(user, channel) if user.nick != @nick
 			end
 			@channels.delete(channel)
-			if @channels.empty?
-				@ircsocket.quit
-			end
 			@ircsocket.part(channel)
 		else
 			user.remove_presence(channel)
@@ -178,6 +200,7 @@ class IRCClient < IRCSocketListener
 
 	def handle_who_end
 		# Remove users we think we see, yet that WHO didn't return?
+		# Actually, we'll miss invisible users this way.
 	end
 
 	def handle_whois_user(nick, username, host, realname)
