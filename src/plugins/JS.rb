@@ -1,5 +1,5 @@
-require 'pty'
 require 'expect'
+require 'pty'
 
 class JS < RubotPlugin
 	include Math
@@ -12,24 +12,22 @@ class JS < RubotPlugin
 		end
 	end
 
-	def on_privmsg(user, reply_to, message)
-		match = message.match(/^js> (.+)/i)
-		return if !match
+	def on_privmsg(user, source, message)
+		return unless match = message.match(/^js> (.+)/i)
 		expression = match[1]
-		Sources.update
 	#	log "JS #{expression} from #{user.nick}!#{user.name}@#{user.host}"
-		command_in_new_thread reply_to, expression
+		command_in_new_thread(source, expression)
 	end
 
-	def command_in_new_thread(reply_to, expr)
+	def command_in_new_thread(source, expr)
 		thr = Thread.new do
-			do_command(expr, reply_to)
+			do_command(expr, source)
 		end
 
-		thr.kill if not thr.join @cmd_timeout
+		thr.kill if not thr.join(@cmd_timeout)
 	end
 
-	def do_command(expr, reply_to)
+	def do_command(expr, source)
 		begin
 			output = ""
 
@@ -43,7 +41,7 @@ class JS < RubotPlugin
 			
 			lines = output.split("\n")
 			lines.slice(1, lines.count-2).each do |line|
-				say reply_to, line
+				say(source, line)
 			end
 		rescue Exception => detail
 			return detail.message
@@ -53,8 +51,7 @@ class JS < RubotPlugin
 	end
 
 	def method_missing(symbol, *args)
-			@client.send symbol, *args
+			@client.send(symbol, *args)
 	end
-
 end
 

@@ -6,18 +6,18 @@ class Eval < RubotPlugin
 		@eval_timeout = 2
 	end
 
-	def on_privmsg(user, reply_to, message)
+	def on_privmsg(user, source, message)
 		return unless match = message.match(/^do (.+)/i)
 		expression = match[1]
-		eval_in_new_thread reply_to, expression
+		eval_in_new_thread(source, expression)
 	end
 
-	def eval_in_new_thread(reply_to, expr)
+	def eval_in_new_thread(source, expr)
 		thr = Thread.new do
-			say reply_to, evaluate(expr)
+			say(source, evaluate(expr))
 		end
 
-		thr.kill if not thr.join @eval_timeout
+		thr.kill if not thr.join(@eval_timeout)
 	end
 
 	def evaluate(expr)
@@ -31,7 +31,7 @@ class Eval < RubotPlugin
 	end
 
 	def method_missing(symbol, *args)
-			@client.send symbol, *args
+			@client.send(symbol, *args)
 	end
 end
 

@@ -1,10 +1,5 @@
 # Librarian
 # A Rubot plugin that serves books.
-
-# Rather than code an ugly case statement for the Librarian's functions, we opt
-# for a more mathematical model. We describe how the different methods relate
-# to simple regexps, and we ask Ruby to link them up for us.
-
 class Librarian < RubotPlugin
 	@@actions = {
 		/^catalog$/i => :catalog,
@@ -70,7 +65,7 @@ class Librarian < RubotPlugin
 		user = UserBase[nick]
 		book = user.book
 		if book.nil?
-			say(@@resume_needs_book.random)
+			respond(@@resume_needs_book.random)
 			return
 		end
 		user.resume.each { |line| private_respond(line) }
@@ -162,6 +157,5 @@ class Librarian < RubotPlugin
 		"    chunk",
 		"    set chunk <size>",
 	]
-
 end
 

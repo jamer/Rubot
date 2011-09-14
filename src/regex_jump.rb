@@ -1,3 +1,6 @@
+# Rather than code an ugly case statement for a table of functions, we opt for
+# a more mathematical model. We describe how different methods relate to simple
+# regexps and ask Ruby to link them up for us.
 class RegexJump
 	def self.try_s2i(arg)
 		# If it's a string that looks like an int, cast to an int.

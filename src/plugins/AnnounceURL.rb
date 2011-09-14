@@ -1,9 +1,9 @@
-require 'rubygems'
-require 'open-uri'
-require 'nokogiri'
-
 require 'net/http'
+require 'open-uri'
 require 'uri'
+
+require 'rubygems'
+require 'nokogiri'
 
 class AnnounceURL < RubotPlugin
 	@@targets = [
@@ -27,69 +27,69 @@ class AnnounceURL < RubotPlugin
 		super
 	end
 
-	def on_privmsg user, reply_to, message
-		search_for_shortened_urls reply_to, message
+	def on_privmsg(user, source, msg)
+		search_for_shortened_urls(source, msg)
 	end
 
-	def search_for_shortened_urls reply_to, message
+	def search_for_shortened_urls(source, msg)
 		@@targets.each do |site, url_moves|
-			message.scan(/(#{site}\/[^ ]+)/).map {|i| i[0]}.each do |url|
-				output_title reply_to, "http://#{url}", url_moves
+			msg.scan(/(#{site}\/[^ ]+)/).map {|i| i[0]}.each do |url|
+				output_title(source, "http://#{url}", url_moves)
 			end
 		end
 	end
 
-	def get_moved_url short_url
+	def get_moved_url(short_url)
 		headers = {
 			"Accept" => "text/html;text/plain",
 			"Host" => short_url[/^http:\/\/([^\/]+)\//,1],
 		}
 
-		url = URI.parse short_url
-		req = Net::HTTP::Get.new url.path, headers
-		res = Net::HTTP.start(url.host, url.port) { |http|
-			http.request req
+		url = URI::parse(short_url)
+		req = Net::HTTP::Get.new(url.path, headers)
+		res = Net::HTTP::start(url.host, url.port) { |http|
+			http.request(req)
 		}
-		return res['Location']
+		return res["Location"]
 	end
 
-	def output_title reply_to, url, url_moves
+	def output_title(source, url, url_moves)
 		if url_moves
-			url = get_moved_url url
+			url = get_moved_url(url)
 			return if url.nil?
 		end
 
-		if is_image url
-			handle_image reply_to, url
+		if is_image(url)
+			handle_image(source, url)
 		else
-			handle_document reply_to, url, url_moves
+			handle_document(source, url, url_moves)
 		end
 	end
 
-	def is_image url
+	def is_image(url)
 		["jpg", "jpeg", "png", "gif"].each do |ext|
 			return true if url.match(/#{ext}(\?|$)/)
 		end
 		return false
 	end
 
-	def handle_image reply_to, url
-			say reply_to, "Image -- http://#{url}"
+	def handle_image(source, url)
+			say(source, "Image -- http://#{url}")
 	end
 
-	def handle_document reply_to, url, url_moves
+	def handle_document(source, url, url_moves)
 		begin
-			doc = Nokogiri::HTML open url
+			doc = Nokogiri::HTML(open(url))
 		rescue OpenURI::HTTPError
 			return
 		end
-		titles = doc.css('title')
+		titles = doc.css("title")
 		titles.each do |title|
 			title = title.content.split().join " "
 			if url_moves
-				say reply_to, "#{title} -- http://#{url}"
+				say(source, "#{title} -- http://#{url}")
 			else
-				say reply_to, "#{title}"
+				say(source, "#{title}")
 			end
 		end
 	end

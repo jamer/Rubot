@@ -29,113 +29,112 @@ class Omegle < RubotPlugin
 		return h
 	end
 
-	def post page, sending, data = ""
+	def post(page, sending, data = "")
 		Net::HTTP.new("promenade.omegle.com", 80).start do |http|
-			res = http.post "/#{page}", data, headers(sending)
-			p res
+			res = http.post("/#{page}", data, headers(sending))
 			return res.body
 		end
 	end
 
-	def start reply_to
-		res = post "start?rcs=1&spid=", false
-		@sid = res.gsub '"', ''
-#		say reply_to, "Recieved stranger ID: '#{@sid}'"
+	def start(source)
+		res = post("start?rcs=1&spid=", false)
+		@sid = res.gsub('"', '')
+#		say(source, "Recieved stranger ID: '#{@sid}'")
 	end
 
-	def events reply_to
-		res = post "events", false, "id=#{@sid}"
-#		say reply_to, "Events: #{res}"
+	def events(source)
+		res = post("events", false, "id=#{@sid}")
+#		say(source, "Events: #{res}")
 
 		# If this happens, we must have something messed up.
 		# Maybe there are new anti-bot measures on Omegle?
 		# Check to see if all the POST information is up to date.
 		if res == "null"
-			say reply_to, "Recieved null event, killing conversation Dx"
+			say(source, "Recieved null event, killing conversation. Dx")
 			@sid = nil
 		end
 
 		# We already disconnected
-		if @sid == nil
+		if @sid.nil?
 			return
 		end
 
-		events = JSON::parse res
+		events = JSON::parse(res)
 		events.each do |event|
-			handle_event reply_to, *event
+			handle_event(source, *event)
 		end
 	end
 
-	def handle_event reply_to, type, msg = ""
+	def handle_event(source, type, msg = "")
 		case type
 		when "waiting" then
-#			say reply_to, "Waiting for stranger"
+#			say(source, "Waiting for stranger")
 		when "connected" then
-			say reply_to, "has connected", :action
-#			say reply_to, "Giving message about being on IRC..."
-#			send reply_to, "" +
+			say(source, "has connected", :action)
+#			say(source, "Giving message about being on IRC...")
+#			send(source, "" +
 #				"Hello stranger! Instead of just one stranger, you've been connected " +
 #				"to the lobby of the n0v4 IRC network with of tons of strangers! " +
-#				"They see everything you say and you see everything they say. Have fun!"
+#				"They see everything you say and you see everything they say. Have fun!")
 		when "typing" then
-#			say reply_to, "is typing", :action
+#			say(source, "is typing", :action)
 		when "stoppedTyping" then
 		when "gotMessage" then
-			say reply_to, "#{msg}"
+			say(source, "#{msg}")
 		when "strangerDisconnected" then
-			say reply_to, "has disconnected", :action
+			say(source, "has disconnected", :action)
 			@sid = nil
 		when "technical reasons" then
-			say reply_to, "Omegle has put up a captcha ;_;"
+			say(source, "Omegle has put up a captcha ;_;")
 			@sid = nil
 		else
-			say reply_to, "Unknown event '#{type}'... This is probably bad!"
+			say(source, "Unknown event '#{type}'... This is probably bad!")
 		end
 	end
 
-	def send reply_to, msg
-		res = post "send", true, "msg=#{msg}&id=#{@sid}"
+	def send(source, msg)
+		res = post("send", true, "msg=#{msg}&id=#{@sid}")
 		case res
 		when "win" then
-#			say reply_to, "Sent '#{msg}'"
+#			say(source, "Sent '#{msg}'")
 		when "fail" then
-			say reply_to, "Failed to send message '#{msg}'"
+			say(source, "Failed to send message '#{msg}'")
 		else
-			say reply_to, "Unknown send confirmation '#{res}'"
+			say(source, "Unknown send confirmation '#{res}'")
 		end
 	end
 
-	def disconnect reply_to
+	def disconnect(source)
 		if @t and @t.alive?
 			@t.kill
 		end
 		@sid = nil
-		post "disconnect", true
-		say reply_to, "You are now disconnected"
+		post("disconnect", true)
+		say(source, "You are now disconnected")
 	end
 
 
-	def init_omegle reply_to
+	def init_omegle(source)
 		@sid = "no sid yet"
-		start reply_to
+		start(source)
 		@t = Thread.new {
 			until @sid == nil do
-				events reply_to
+				events(source)
 			end
 		}
 	end
 
-	def on_privmsg user, reply_to, message
+	def on_privmsg(user, source, message)
 		if message == ":omegle" or message == ":connect"
 			if @t and @t.alive?
-				say reply_to, "Stranger already connected"
+				say(source, "Stranger already connected")
 			else
-				init_omegle reply_to
+				init_omegle(source)
 			end
 		elsif @t and @t.alive? and message == ":disconnect"
-			disconnect reply_to
+			disconnect(source)
 		elsif @t and @t.alive? and message =~ /^-/
-			send reply_to, message[1..-1]
+			send(source, message[1..-1])
 		end
 	end
 end
