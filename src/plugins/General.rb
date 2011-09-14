@@ -15,7 +15,7 @@ class General < RubotPlugin
 	end
 
 	def on_privmsg(user, source, line)
-		return RegexJump::jump(@@actions, self, line, [user, source])
+		RegexJump::jump(@@actions, self, line, [user, source])
 	end
 
 	def on_invite(user, channel)

@@ -14,7 +14,7 @@ class JS < RubotPlugin
 
 	def on_privmsg(user, reply_to, message)
 		match = message.match(/^js> (.+)/i)
-		return false if !match
+		return if !match
 		expression = match[1]
 		Sources.update
 	#	log "JS #{expression} from #{user.nick}!#{user.name}@#{user.host}"

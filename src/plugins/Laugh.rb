@@ -15,7 +15,7 @@ class Laugh < RubotPlugin
 	end
 
 	def on_privmsg(user, source, line)
-		return RegexJump::jump(@@actions, self, line, [source])
+		RegexJump::jump(@@actions, self, line, [source])
 	end
 
 	# Say "WOLOL" about 10% of the time.

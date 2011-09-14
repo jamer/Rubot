@@ -13,10 +13,9 @@ class Qdb < RubotPlugin
 	end
 
 	def on_privmsg(user, reply_to, message)
-		return false if message != ":qdb"
-		return false if too_soon reply_to
+		return if message != ":qdb"
+		return if too_soon reply_to
 		bash reply_to
-		return true
 	end
 
 	def too_soon(reply_to)

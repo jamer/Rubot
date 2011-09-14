@@ -13,10 +13,9 @@ class Bash < RubotPlugin
 	end
 
 	def on_privmsg(user, reply_to, message)
-		return false if message != ":bash"
-		return false if too_soon reply_to
+		return if message != ":bash"
+		return if too_soon reply_to
 		bash reply_to
-		return true
 	end
 
 	def too_soon(reply_to)

@@ -7,8 +7,7 @@ class Eval < RubotPlugin
 	end
 
 	def on_privmsg(user, reply_to, message)
-		match = message.match(/^do (.+)/i)
-		return false if !match
+		return unless match = message.match(/^do (.+)/i)
 		expression = match[1]
 		eval_in_new_thread reply_to, expression
 	end

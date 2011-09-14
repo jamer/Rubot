@@ -132,17 +132,11 @@ class Omegle < RubotPlugin
 			else
 				init_omegle reply_to
 			end
-			return true
 		elsif @t and @t.alive? and message == ":disconnect"
 			disconnect reply_to
-			return true
 		elsif @t and @t.alive? and message =~ /^-/
 			send reply_to, message[1..-1]
-			return true
 		end
-
-		return false
 	end
-
 end
 

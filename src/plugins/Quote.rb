@@ -12,7 +12,7 @@ class Quote < RubotPlugin
 	end
 
 	def on_privmsg(user, source, line)
-		return RegexJump::jump(@@actions, self, line, [source])
+		RegexJump::jump(@@actions, self, line, [source])
 	end
 
 	def add(source, quote)

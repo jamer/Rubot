@@ -1,6 +1,4 @@
-
 class Typo < RubotPlugin
-
 	def initialize
 		super
 
@@ -53,6 +51,5 @@ class Typo < RubotPlugin
 			user_said nick, message
 		end
 	end
-
 end
 

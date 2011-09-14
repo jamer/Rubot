@@ -29,7 +29,7 @@ class Search < RubotPlugin
 	def on_privmsg(user, source, line)
 		mkay(source) if line.match(/#{@client.nick}/i) or line.match(/jamerbot/)
 		line.gsub!(/^\s*#{@client.nick}:?\s+/, "")
-		return RegexJump::jump(@@actions, self, line, [user.nick, source])
+		RegexJump::jump(@@actions, self, line, [user.nick, source])
 	end
 
 	def search1(nick, source, term)

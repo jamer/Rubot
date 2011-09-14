@@ -7,9 +7,7 @@ class UpdateCmd < RubotPlugin
 		if message =~ /^:update/i
 			responces = Sources.update ? @@update_success : @@update_fail
 			say reply_to, responces.random
-			return true
 		end
-		return false
 	end
 
 	@@update_success = [

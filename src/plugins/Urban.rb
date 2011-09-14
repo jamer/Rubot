@@ -13,12 +13,11 @@ class Urban < RubotPlugin
 	end
 
 	def on_privmsg(user, source, line)
-		return false unless (match = line.match /:urban (.+)/)
-		return false if too_soon(source)
+		return unless match = line.match(/:urban (.+)/)
+		return if too_soon(source)
 		word = match[1]
 		definition = urban(word)
 		say(source, definition)
-		return true
 	end
 
 	def too_soon(source)

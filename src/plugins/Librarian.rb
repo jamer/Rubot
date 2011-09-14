@@ -26,7 +26,7 @@ class Librarian < RubotPlugin
 	end
 
 	def on_privmsg(user, source, line)
-		return false unless line =~ /^>(.+)/i
+		return unless line =~ /^>(.+)/i
 		command = $1.strip
 		@source = source
 		@nick = user.nick
