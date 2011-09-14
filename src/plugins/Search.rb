@@ -26,10 +26,10 @@ class Search < RubotPlugin
 		@cooldown = IRCCooldown.new(self, 5, "You're searching too fast. Wait %d more second%s.")
 	end
 
-	def on_privmsg(user, source, line)
-		mkay(source) if line.match(/#{@client.nick}/i) or line.match(/jamerbot/)
-		line.gsub!(/^\s*#{@client.nick}:?\s+/, "")
-		RegexJump::jump(@@actions, self, line, [user.nick, source])
+	def on_privmsg(user, source, msg)
+		mkay(source) if msg.match(/#{@client.nick}/i) or msg.match(/jamerbot/)
+		msg.gsub!(/^\s*#{@client.nick}:?\s+/, "")
+		RegexJump::jump(@@actions, self, msg, [user.nick, source])
 	end
 
 	def search1(nick, source, term)

@@ -3,8 +3,8 @@ class Christmas < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, message)
-		if message.match(/^merry.*christmas/i)
+	def on_privmsg(user, source, msg)
+		if msg.match(/^merry.*christmas/i)
 			say(source, "Merry Christmas, #{user.nick}!")
 		end
 	end

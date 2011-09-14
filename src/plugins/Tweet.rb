@@ -55,12 +55,12 @@ class Tweet < RubotPlugin
 	def announce_tweets(tweets, channel=nil)
 		tweets.each do |tweet|
 			from = @coder.decode(tweet["from_user"])
-			message = @coder.decode(tweet["text"].split("\n").join(" "))
+			msg = @coder.decode(tweet["text"].split("\n").join(" "))
 			
 			if channel.nil? then
-				@needs_to_be_said.push("\002[#{from}]\002 #{message}")
+				@needs_to_be_said.push("\002[#{from}]\002 #{msg}")
 			else
-				say(channel, "\002[#{from}]\002 #{message}")
+				say(channel, "\002[#{from}]\002 #{msg}")
 			end
 		end
 	end
@@ -177,8 +177,8 @@ class Tweet < RubotPlugin
 		end
 	end
 	
-	def on_privmsg(user, source, message)
-		if message =~ /^!follow ([A-Za-z0-9_]+)$/ then
+	def on_privmsg(user, source, msg)
+		if msg =~ /^!follow ([A-Za-z0-9_]+)$/ then
 			username = $1.to_sym
 			if @accounts.include?(username) then
 				say(source, "I'm already following \002#{$1}\002.")
@@ -186,7 +186,7 @@ class Tweet < RubotPlugin
 				@accounts[username] = 0
 				say(source, "Following \002#{$1}\002.")
 			end
-		elsif message =~ /^!unfollow ([A-Za-z0-9_]+)$/ then
+		elsif msg =~ /^!unfollow ([A-Za-z0-9_]+)$/ then
 			username = $1.to_sym
 			if @accounts.include?(username) then
 				@accounts.delete(username)
@@ -194,21 +194,21 @@ class Tweet < RubotPlugin
 			else
 				say(source, "I'm not following \002#{$1}\002!")
 			end
-		elsif message =~ /^!following$/ then
+		elsif msg =~ /^!following$/ then
 			say source, "Following: \002#{@accounts.keys.join ", "}\002."
-		elsif message =~ /^!debug$/ then
+		elsif msg =~ /^!debug$/ then
 			@accounts.each do |account, id|
 				say(source, "\002#{account}\002: #{id}.")
 			end
-		elsif message =~ /^!info ([A-Za-z0-9_]+)$/ then
+		elsif msg =~ /^!info ([A-Za-z0-9_]+)$/ then
 			do_info(source, $1)
-		elsif message =~ /^!latest ([A-Za-z0-9_]+)$/ then
+		elsif msg =~ /^!latest ([A-Za-z0-9_]+)$/ then
 			say(source, do_latest(source, $1, 1))
-		elsif message =~ /^!latest (\d+) ([A-Za-z0-9_]+)$/ then
+		elsif msg =~ /^!latest (\d+) ([A-Za-z0-9_]+)$/ then
 			say(source, do_latest(source, $2, $1))
-		elsif message =~ /^!search (.+)$/ then
+		elsif msg =~ /^!search (.+)$/ then
 			say(source, search_tweets(source, (URI.escape $1), "recent"))
-		elsif message =~ /^!popular (.+)$/ then
+		elsif msg =~ /^!popular (.+)$/ then
 			say(source, search_tweets(source, (URI.escape $1), "popular"))
 		end
 	end

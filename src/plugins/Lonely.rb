@@ -13,8 +13,8 @@ class Lonely < RubotPlugin
 		@chance = 2
 	end
 
-	def on_privmsg(user, source, message)
-		i = rand 100
+	def on_privmsg(user, source, msg)
+		i = rand(100)
 		speak = i < @chance
 		say(source, @@messages.random) if speak
 	end

@@ -12,8 +12,8 @@ class JS < RubotPlugin
 		end
 	end
 
-	def on_privmsg(user, source, message)
-		return unless match = message.match(/^js> (.+)/i)
+	def on_privmsg(user, source, msg)
+		return unless match = msg.match(/^js> (.+)/i)
 		expression = match[1]
 	#	log "JS #{expression} from #{user.nick}!#{user.name}@#{user.host}"
 		command_in_new_thread(source, expression)

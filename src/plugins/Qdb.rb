@@ -12,8 +12,8 @@ class Qdb < RubotPlugin
 		@cooldown = 15
 	end
 
-	def on_privmsg(user, source, message)
-		return if message != ":qdb"
+	def on_privmsg(user, source, msg)
+		return if msg != ":qdb"
 		return if too_soon(source)
 		bash(source)
 	end

@@ -9,13 +9,13 @@ class Typo < RubotPlugin
 		@msgs = {}
 	end
 
-	def user_said(nick, message)
+	def user_said(nick, msg)
 		# A user said something, let's write it down.
 		unless @msgs[nick]
 			@msgs[nick] = Array.new
 		end
 
-		@msgs[nick].push message
+		@msgs[nick].push(msg)
 		if @msgs[nick].length > @remembered
 			@msgs[nick].shift
 		end
@@ -30,25 +30,25 @@ class Typo < RubotPlugin
 		user_said(nick, corrected)
 	end
 
-	def on_privmsg(user, source, message)
-		if message.match(/^s\/(.+)\/(.+)/)
+	def on_privmsg(user, source, msg))
+		if msg.match(/^s\/(.+)\/(.+)/))
 			nick = user.nick
 			orig, cor = $1, $2
 			cor.chop! if cor[-1..-1] == "/"
 			replace(source, nick, orig, cor)
-		elsif message.match(/^(.+?)\/(.+)\/(.+)/)
+		elsif msg.match(/^(.+?)\/(.+)\/(.+)/)
 			nick, orig, cor = $1, $2, $3
 			cor.chop! if cor[-1..-1] == "/"
 			replace(source, nick, orig, cor)
-		elsif message.match(/^([^:]+): s\/(.+)\/(.+)/)
+		elsif msg.match(/^([^:]+): s\/(.+)\/(.+)/)
 			say(source, "match")
 		else
 			nick = user.nick
-			if message.match(/\001/)
-				message.sub!(/^\001ACTION/, "* " + user.nick)
-				message.sub!(/\001$/, "")
+			if msg.match(/\001/)
+				msg.sub!(/^\001ACTION/, "* " + user.nick)
+				msg.sub!(/\001$/, "")
 			end
-			user_said(nick, message)
+			user_said(nick, msg)
 		end
 	end
 end

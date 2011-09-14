@@ -134,13 +134,13 @@ class Slap < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, message)
-		slap(source, message)
-		flinch(source) if got_slapped(message)
+	def on_privmsg(user, source, msg)
+		slap(source, msg)
+		flinch(source) if got_slapped(msg)
 	end
 
-	def slap(source, message)
-		return unless match = message.match(/^slap[ \t]+(.+)/i)
+	def slap(source, msg)
+		return unless match = msg.match(/^slap[ \t]+(.+)/i)
 		target = match[1]
 		target = "itself" if target.downcase.include?(@client.nick.downcase)
 		say(source, "slaps #{target} around a bit with #{@fish.random}.", :action)
@@ -148,8 +148,8 @@ class Slap < RubotPlugin
 		flinch(source) if %w(himself herself itself).include?(target)
 	end
 
-	def got_slapped(message)
-		message.include?("slaps #{@client.nick}")
+	def got_slapped(msg)
+		msg.include?("slaps #{@client.nick}")
 	end
 
 	def flinch(source)

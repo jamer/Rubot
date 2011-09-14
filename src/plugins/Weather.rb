@@ -12,8 +12,8 @@ class Weather < RubotPlugin
 		@cooldown = 5
 	end
 
-	def on_privmsg(user, source, message)
-		return unless match = message.match(/^:weather (\d+)/)
+	def on_privmsg(user, source, msg)
+		return unless match = msg.match(/^:weather (\d+)/)
 		return if too_soon(source)
 		area_code = match[1]
 		weather(source, area_code)

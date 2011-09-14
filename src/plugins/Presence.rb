@@ -10,8 +10,8 @@ class Presence < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, line)
-		RegexJump::jump(@@actions, self, line, [source])
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
 	def show(source, nick)

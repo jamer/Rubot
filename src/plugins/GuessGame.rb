@@ -9,8 +9,8 @@ class GuessGame < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, line)
-		RegexJump::jump(@@actions, self, line, [user.nick, source])
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [user.nick, source])
 	end
 
 	def start_game(nick, source)

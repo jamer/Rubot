@@ -8,7 +8,7 @@ class Omegle < RubotPlugin
 		@t = nil
 	end
 
-	def headers sending
+	def headers(sending)
 		h = {
 			"User-Agent" => "Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.28 Safari/534.10",
 			"Accept-Charset" => "ISO-8859-1,utf-8;q=0.7,*;q=0.3",
@@ -124,17 +124,17 @@ class Omegle < RubotPlugin
 		}
 	end
 
-	def on_privmsg(user, source, message)
-		if message == ":omegle" or message == ":connect"
+	def on_privmsg(user, source, msg)
+		if msg == ":omegle" or msg == ":connect"
 			if @t and @t.alive?
 				say(source, "Stranger already connected")
 			else
 				init_omegle(source)
 			end
-		elsif @t and @t.alive? and message == ":disconnect"
+		elsif @t and @t.alive? and msg == ":disconnect"
 			disconnect(source)
-		elsif @t and @t.alive? and message =~ /^-/
-			send(source, message[1..-1])
+		elsif @t and @t.alive? and msg =~ /^-/
+			send(source, msg[1..-1])
 		end
 	end
 end

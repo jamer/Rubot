@@ -39,7 +39,6 @@ class Square
 end
 
 class Game
-
 	attr_accessor :board
 
 	def initialize
@@ -66,8 +65,8 @@ class Game
 end
 
 class Chess < RubotPlugin
-	def on_privmsg(user, source, line)
-		RegexJump::jump(@@actions, self, line, [user, source])
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [user, source])
 	end
 
 	@@actions = {

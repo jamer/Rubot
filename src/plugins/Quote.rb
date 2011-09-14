@@ -2,17 +2,17 @@ class Quote < RubotPlugin
 	@@file = "quotes.txt"
 
 	@@actions = {
-		/^:add (.+)/i => :add,
-		/^:show (\d+)/i => :show,
-		/^:find (.+)/i => :find,
+		/^:quote add (.+)/i => :add,
+		/^:quote show (\d+)/i => :show,
+		/^:quote find (.+)/i => :find,
 	}
 
 	def initialize
 		super
 	end
 
-	def on_privmsg(user, source, line)
-		RegexJump::jump(@@actions, self, line, [source])
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
 	def add(source, quote)
@@ -38,7 +38,7 @@ class Quote < RubotPlugin
 			line =~ /#{term}/
 		}.map { |line, i| i }
 		if matches.length
-			say(source, "Found term in quotes: #{matches.join ' '}")
+			say(source, "Found term in quotes: #{matches.join(' ')}")
 		else
 			say(source, "Didn't find term in any quotes")
 		end

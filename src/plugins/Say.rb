@@ -8,16 +8,16 @@ class Say < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, line)
-		RegexJump::jump(@@actions, self, line, [source])
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
-	def speak(source, message)
-		say(source, message)
+	def speak(source, msg)
+		say(source, msg)
 	end
 
-	def speak_to(source, target, message)
-		say(target, message)
+	def speak_to(source, target, msg)
+		say(target, msg)
 	end
 end
 

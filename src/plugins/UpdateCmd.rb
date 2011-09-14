@@ -3,8 +3,8 @@ class UpdateCmd < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, message)
-		if message =~ /^:update/i
+	def on_privmsg(user, source, msg)
+		if msg =~ /^:update/i
 			responces = Sources::update ? @@update_success : @@update_fail
 			say(source, responces.random)
 		end

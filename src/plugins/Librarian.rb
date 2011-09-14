@@ -20,20 +20,20 @@ class Librarian < RubotPlugin
 		super
 	end
 
-	def on_privmsg(user, source, line)
-		return unless line =~ /^>(.+)/i
+	def on_privmsg(user, source, msg)
+		return unless msg =~ /^>(.+)/i
 		command = $1.strip
 		@source = source
 		@nick = user.nick
 		return RegexJump::jump(@@actions, self, command, [user.nick])
 	end
 
-	def respond(message)
-		say(@source, message)
+	def respond(msg)
+		say(@source, msg)
 	end
 
-	def private_respond(message)
-		say(@nick, message)
+	def private_respond(msg)
+		say(@nick, msg)
 	end
 
 	def open(nick, title)

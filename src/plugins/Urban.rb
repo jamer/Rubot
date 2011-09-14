@@ -12,8 +12,8 @@ class Urban < RubotPlugin
 		@cooldown = 5
 	end
 
-	def on_privmsg(user, source, line)
-		return unless match = line.match(/:urban (.+)/)
+	def on_privmsg(user, source, msg)
+		return unless match = msg.match(/:urban (.+)/)
 		return if too_soon(source)
 		word = match[1]
 		definition = urban(word)

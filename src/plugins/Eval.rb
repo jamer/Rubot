@@ -6,13 +6,13 @@ class Eval < RubotPlugin
 		@eval_timeout = 2
 	end
 
-	def on_privmsg(user, source, message)
-		return unless match = message.match(/^do (.+)/i)
+	def on_privmsg(user, source, msg)
+		return unless match = msg.match(/^do (.+)/i)
 		expression = match[1]
-		eval_in_new_thread(source, expression)
+		eval_in_thread(source, expression)
 	end
 
-	def eval_in_new_thread(source, expr)
+	def eval_in_thread(source, expr)
 		thr = Thread.new do
 			say(source, evaluate(expr))
 		end
