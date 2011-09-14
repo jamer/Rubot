@@ -6,29 +6,27 @@ class General < RubotPlugin
 		/^:leave (.+)/i => :part,
 		/^:part$/i => :part_this,
 		/^:leave$/i => :part_this,
-		/^:rejoin (.*)/i => :rejoin,
-		/^:norejoin (.*)/i => :norejoin,
+		/^:rejoin (.+)/i => :rejoin,
+		/^:norejoin (.+)/i => :norejoin,
 	}
 
 	def on_privmsg(user, source, line)
 		return RegexJump::jump(@@actions, self, line, [source])
 	end
 
+	def on_invite(user, channel)
+		@client.join(channel)
+	end
+
 	def join(source, channels)
-		channels = channels.to_s if channels.is_a?(Integer)
-		channels.split(",").each do |channel|
-			next if channel.empty?
-			channel = "#" + channel unless channel[0,1] == "#"
-			@client.join(channel)
+		split_channels(channels).each do |channel|
+			@client.join(channels)
 		end
 	end
 
 	def part(source, channels)
-		channels = channels.to_s if channels.is_a?(Integer)
-		channels.split(",").each do |channel|
-			next if channel.empty?
-			channel = "#" + channel unless channel[0,1] == "#"
-			@client.part(channel)
+		split_channels(channels).each do |channel|
+			@client.part(channels)
 		end
 	end
 
@@ -37,25 +35,26 @@ class General < RubotPlugin
 	end
 
 	def rejoin(source, channels)
-		channels = channels.to_s if channels.is_a?(Integer)
-		channels.split(",").each do |channel|
-			next if channel.empty?
-			channel = "#" + channel unless channel[0,1] == "#"
-			@client.channels[channel].rejoin = true
+		split_channels(channels).each do |channel|
+			@client.channels[channel].rejoin = true if
+					@client.channels.include?(channel)
 		end
 	end
 
 	def norejoin(source, channels)
-		channels = channels.to_s if channels.is_a?(Integer)
-		channels.split(",").each do |channel|
-			next if channel.empty?
-			channel = "#" + channel unless channel[0,1] == "#"
-			@client.channels[channel].rejoin = false
+		split_channels(channels).each do |channel|
+			@client.channels[channel].rejoin = false if
+					@client.channels.include?(channel)
 		end
 	end
 
-	def on_invite(user, channel)
-		@client.join(channel)
+	def split_channels(channels)
+		channels = channels.to_s if channels.is_a?(Integer)
+		return channels.split(',').map { |channel|
+			channel.strip!
+			channel = '#' + channel if channel.size > 0 and channel[0,1] != '#'
+			(channel.empty?) ? nil : channel
+		}.compact
 	end
 end
 
