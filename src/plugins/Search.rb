@@ -62,7 +62,9 @@ class Search < RubotPlugin
 
 	def ddg(query)
 		response = open("http://api.duckduckgo.com/?q=#{query}&o=json")
-		json = JSON::parse(response.readlines.join('\n'))
+		lines = response.readlines
+		return nil if lines.grep(/doctype/i)
+		json = JSON::parse(lines.join('\n'))
 		output = [
 				json["AbstractText"],
 				json["RelatedTopics"].at(0).andand["Text"],
@@ -81,7 +83,7 @@ class Search < RubotPlugin
 		definitions = doc.xpath("//div[@class='definition']")
 
 		looking_for = query.gsub('+', ' ').downcase
-		first_result = words[0].andand.content.strip.downcase
+		first_result = words[0].andand.content.andand.strip.andand.downcase
 		definition = definitions[0].andand.content
 
 		# Urban gives us results that we weren't looking for.
