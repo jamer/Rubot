@@ -4,14 +4,15 @@ require "./lib/sources.rb"
 
 source_dirs = [
 	"./lib/",
-	"./lib/ext",
-	"./lib/irc",
+	"./lib/ext/",
+	"./lib/irc/",
 ]
 
 
 # Load all our source files.
 source_dirs.each do |dir| 
-	Sources.require_all Dir.glob "#{dir}/*.rb"
+	files = Dir.glob("#{dir}/*.rb").reject {|f| f == __FILE__ }
+	Sources.require_all(files)
 end
 
 #set_trace_func proc { |event, file, line, id, binding, classname|
@@ -19,6 +20,6 @@ end
 #}
 
 # Start the program.
-bot = Rubot.new ARGV
+bot = Rubot.new(ARGV)
 bot.main_loop
 
