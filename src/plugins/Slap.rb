@@ -4,6 +4,7 @@ class Slap < RubotPlugin
 	# familiar with. But take my word, they *are* fish. :)
 
 	def initialize
+		super
 		@fish = [
 			"a large 5r7a8i9n3b2o12w 6t4r7o8u9t3",
 			"a large trout",
@@ -128,10 +129,6 @@ class Slap < RubotPlugin
 			"a Python distribution",
 			"a <3",
 		]
-	end
-
-	def initialize
-		super
 	end
 
 	def on_privmsg(user, source, msg)

@@ -30,8 +30,8 @@ class Typo < RubotPlugin
 		user_said(nick, corrected)
 	end
 
-	def on_privmsg(user, source, msg))
-		if msg.match(/^s\/(.+)\/(.+)/))
+	def on_privmsg(user, source, msg)
+		if msg.match(/^s\/(.+)\/(.+)/)
 			nick = user.nick
 			orig, cor = $1, $2
 			cor.chop! if cor[-1..-1] == "/"
