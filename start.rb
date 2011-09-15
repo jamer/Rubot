@@ -4,6 +4,7 @@ require "./lib/sources.rb"
 
 source_dirs = [
 	"./lib/",
+	"./lib/ext",
 	"./lib/irc",
 ]
 
