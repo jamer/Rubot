@@ -1,5 +1,5 @@
 #!/bin/bash
 
-ulimit -u 200
+ulimit -u 10
 sudo -u nobody ruby start.rb $*
 
