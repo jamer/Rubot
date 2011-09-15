@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
-require "./src/sources.rb"
+require "./lib/sources.rb"
 
 source_dirs = [
-	"./src/",
-	"./src/irc",
+	"./lib/",
+	"./lib/irc",
 ]
 
 
