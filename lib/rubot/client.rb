@@ -32,7 +32,7 @@ class IRCClient < IRCSocketListener
 		if @plugins.include?(name)
 			raise "Plugin #{name} already loaded in client"
 		end
-		Sources::require("plugins/#{name}.rb")
+		require("plugins/#{name}.rb")
 		plugin = Kernel::const_get(name).new
 		plugin.client = self
 		@plugins[name] = plugin

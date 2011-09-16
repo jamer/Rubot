@@ -1,18 +1,18 @@
 #!/usr/bin/env ruby
-
-require "./lib/sources.rb"
+$:.push File.expand_path("../..", __FILE__)
 
 source_dirs = [
-	"./lib/",
-	"./lib/ext/",
-	"./lib/rubot/",
+	"lib/",
+	"lib/ext/",
+	"lib/rubot/",
 ]
-
 
 # Load all our source files.
 source_dirs.each do |dir| 
 	files = Dir.glob("#{dir}/*.rb").reject {|f| f == __FILE__ }
-	Sources.require_all(files)
+	files.each do |file|
+		require file
+	end
 end
 
 #set_trace_func proc { |event, file, line, id, binding, classname|
