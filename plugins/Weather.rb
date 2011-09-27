@@ -1,42 +1,31 @@
 require 'open-uri'
 
 require 'rubygems'
+require 'andand'
 require 'nokogiri'
 
 class Weather < RubotPlugin
-	attr_accessor :cooldown
+	@@actions = {
+		/^:weather (\d+)$/i => :weather
+	}
 
 	def initialize
 		super
-		@last = 0
-		@cooldown = 5
+		@cooldown = IRCCooldown.new(self, 5, "Please wait %s more second%s to check the weather.")
 	end
 
 	def on_privmsg(user, source, msg)
-		return unless match = msg.match(/^:weather (\d+)/)
-		return if too_soon(source)
-		area_code = match[1]
-		weather(source, area_code)
-	end
-
-	def too_soon(source)
-		time = Time.now
-		if time.to_i < @last.to_i + @cooldown
-			say(source, "I can only check weather every #{@cooldown} seconds." )
-			return true
-		end
-		return false
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
 	def weather(source, area_code)
-		@last = Time.now
-
+		return unless @cooldown.trigger_err(source)
 		doc = Nokogiri::HTML(open("http://www.wunderground.com/cgi-bin/" +
 				"findweather/getForecast?query=#{area_code}"))
-		forecasts = doc.xpath("//tr[@class='wHover']/td[@class='full']/div[2]")
-		%w(Today Tonight Tomorrow).each_with_index do |time, i|
-			say(source, "#{time}: #{forecasts[i].content}")
-		end
+		relative_temp = doc.xpath("//div[@id='relativeTemp']")
+				.andand.at(0)
+				.andand.content
+		say(source, relative_temp)
 	end
 end
 
