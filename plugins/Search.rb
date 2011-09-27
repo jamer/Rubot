@@ -50,8 +50,16 @@ class Search < RubotPlugin
 		say(source, answer)
 	end
 
+	def escape(term)
+		term.gsub!('+', "%2B") # Handle pluses in input
+		term.gsub!(' ', '+')
+		query = URI::escape(term)
+		query.gsub!("%252B", "%2B") # Unescape pluses
+		return query
+	end
+
 	def lookup(term)
-		query = URI::escape(term.gsub(' ', '+'))
+		query = escape(term)
 		x = [
 			proc {|query| ddg(query) },
 			proc {|query| urban(query) },
@@ -63,11 +71,12 @@ class Search < RubotPlugin
 	def ddg(query)
 		response = open("http://api.duckduckgo.com/?q=#{query}&o=json")
 		lines = response.readlines
-		return nil if lines.grep(/doctype/i)
+		return nil if lines.grep(/doctype/i).size > 0
 		json = JSON::parse(lines.join('\n'))
 		output = [
+				json["Answer"],
 				json["AbstractText"],
-				json["RelatedTopics"].at(0).andand["Text"],
+				json["RelatedTopics"].andand.at(0).andand["Text"],
 		].find {|x| x && x.length > 0 }
 		if output
 			return output.gsub(/<.*?>/, "") # strip HTML
