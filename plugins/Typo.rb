@@ -1,4 +1,11 @@
 class Typo < RubotPlugin
+	@@actions = {
+		/^s\/(.+)\/(.+?)\/?$/ => :correct_self,                   # s/old/new/
+		/^(\S+?)\/(.+)\/(.+?)\/?$/ => :correct_other,             # nick/old/new/
+		/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/ => :correct_other, # nick: s/old/new/
+		/(.+)/ => :remember_line,
+	}
+
 	def initialize
 		super
 
@@ -9,47 +16,42 @@ class Typo < RubotPlugin
 		@msgs = {}
 	end
 
-	def user_said(nick, msg)
-		# A user said something, let's write it down.
-		unless @msgs[nick]
-			@msgs[nick] = Array.new
-		end
+	def on_privmsg(user, source, msg)
+		RegexJump::jump(@@actions, self, msg, [user, source])
+	end
 
-		@msgs[nick].push(msg)
-		if @msgs[nick].length > @remembered
-			@msgs[nick].shift
-		end
+	# A user said something, let's write it down.
+	def add_history_item(nick, msg)
+		@msgs[nick] = Array.new unless @msgs[nick]
+		@msgs[nick].unshift(msg)
+		@msgs[nick].pop if @msgs[nick].length > @remembered
 	end
 
 	def replace(source, nick, orig, cor)
 		return unless @msgs[nick]
-		found = @msgs[nick].grep(/#{orig}/).last
+		found = @msgs[nick].find {|msg| msg =~ /#{orig}/ }
 		return unless found
 		corrected = found.sub(/#{orig}/i, cor)
 		say(source, "#{nick} meant to say: #{corrected}")
-		user_said(nick, corrected)
+		add_history_item(nick, corrected)
 	end
 
-	def on_privmsg(user, source, msg)
-		if msg.match(/^s\/(.+)\/(.+)/)
-			nick = user.nick
-			orig, cor = $1, $2
-			cor.chop! if cor[-1..-1] == "/"
-			replace(source, nick, orig, cor)
-		elsif msg.match(/^(.+?)\/(.+)\/(.+)/)
-			nick, orig, cor = $1, $2, $3
-			cor.chop! if cor[-1..-1] == "/"
-			replace(source, nick, orig, cor)
-		elsif msg.match(/^([^:]+): s\/(.+)\/(.+)/)
-			say(source, "match")
-		else
-			nick = user.nick
-			if msg.match(/\001/)
-				msg.sub!(/^\001ACTION/, "* " + user.nick)
-				msg.sub!(/\001$/, "")
-			end
-			user_said(nick, msg)
+	def correct_self(user, source, orig, cor)
+		nick = user.nick
+		replace(source, nick, orig, cor)
+	end
+
+	def correct_other(user, source, nick, orig, cor)
+		replace(source, nick, orig, cor)
+	end
+
+	def remember_line(user, source, msg)
+		nick = user.nick
+		if msg =~ /\001/
+			msg.sub!(/^\001ACTION/, "* " + user.nick)
+			msg.sub!(/\001$/, "")
 		end
+		add_history_item(nick, msg)
 	end
 end
 
