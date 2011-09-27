@@ -43,6 +43,7 @@ class Rubot
 		begin
 			handle_input
 		rescue Interrupt
+			interrupt_sockets
 		rescue SystemExit
 		rescue Exception => detail
 			puts "Exception caught - #{detail.class}(\"#{detail.message}\")"
@@ -52,8 +53,8 @@ class Rubot
 		end
 	end
 
+	# Read and handle all open sockets until they all disconnect.
 	def handle_input
-		# Just keep on trucking until we disconnect
 		while @sockets.size > 0 and sleep(1)
 			@sockets.each do |socket|
 				socket.readline while (socket.connected? and socket.peek)
@@ -61,6 +62,12 @@ class Rubot
 			@sockets = @sockets.find_all {|socket| socket.connected? }
 		end
 		log "No connections left, quitting."
+	end
+
+	def interrupt_sockets
+		@sockets.each do |socket|
+			socket.quit_msg("Interrupted") if socket.connected?
+		end
 	end
 end
 

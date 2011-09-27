@@ -24,9 +24,9 @@ class IRCSocket
 		@last_active = Time.now
 	end
 
+	# Connect to the IRC server. First try using SSL, then fall back to a
+	# regular TCP connection.
 	def connect
-		# Connect to the IRC server. First try using SSL, then fall back to a
-		# regular TCP connection.
 		tcp = TCPSocket.new(@host, @port)
 		ssl = OpenSSL::SSL::SSLSocket.new(tcp)
 		begin
@@ -101,10 +101,15 @@ class IRCSocket
 		write("PART #{channel}")
 	end
 
+	# Disconnect from the server.
 	def quit
-		# Disconnect from the server.
+		quit_msg("")
+	end
+
+	# Disconnect from the server.
+	def quit_msg(msg)
 		raise "already disconnected" unless @connected
-		write("QUIT")
+		write("QUIT #{msg}")
 		@connected = false
 		@socket.close
 	end
@@ -116,8 +121,8 @@ private
 		end
 	end
 
+	# Send a line to the IRC server.
 	def write(line)
-		# Send a line to the IRC server.
 		log("--> #{line}") if @log_output
 		@socket.write("#{line}\r\n")
 	end
@@ -146,8 +151,8 @@ private
 		/^318/ => :handle_whois_end,
 	}
 
+	# Handle fatal errors from the server.
 	def process_line(line)
-		# Handle fatal errors from the server.
 		if line =~ /^ERROR/
 			@connected = false
 			@socket.close
