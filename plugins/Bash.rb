@@ -4,37 +4,25 @@ require 'rubygems'
 require 'nokogiri'
 
 class Bash < RubotPlugin
-	attr_accessor :cooldown
+	@@actions = {
+		/^:bash$/i => :bash
+	}
 
 	def initialize
 		super
-		@last = 0
-		@cooldown = 5
+		@cooldown = IRCCooldown.new(self, 5, "Please wait %s more second%s for a quote.")
 	end
 
 	def on_privmsg(user, source, msg)
-		return if msg != ":bash"
-		return if too_soon(source)
-		bash(source)
-	end
-
-	def too_soon(source)
-		time = Time.now
-		if time.to_i < @last.to_i + @cooldown
-			say(source, "I can only do a quote every #{@cooldown} seconds.")
-			return true
-		end
-		return false
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
 	def bash(source)
-		@last = Time.now
-
 		html = open("http://bash.org/?random1")
 		doc = Nokogiri::HTML(html)
 		quotes = doc.xpath("//p[@class='qt']")
 		quote = quotes[0].content
-		quote.split("\n").each { |line| say(source, line) }
+		quote.split('\n').each { |line| say(source, line) }
 	end
 end
 
