@@ -72,7 +72,7 @@ class Omegle < RubotPlugin
 		when "connected" then
 			say(source, "has connected", :action)
 #			say(source, "Giving message about being on IRC...")
-#			send(source, "" +
+#			send_msg(source, "" +
 #				"Hello stranger! Instead of just one stranger, you've been connected " +
 #				"to the lobby of the n0v4 IRC network with of tons of strangers! " +
 #				"They see everything you say and you see everything they say. Have fun!")
@@ -92,7 +92,7 @@ class Omegle < RubotPlugin
 		end
 	end
 
-	def send(source, msg)
+	def send_msg(source, msg)
 		res = post("send", true, "msg=#{msg}&id=#{@sid}")
 		case res
 		when "win" then
@@ -134,7 +134,7 @@ class Omegle < RubotPlugin
 		elsif @t and @t.alive? and msg == ":disconnect"
 			disconnect(source)
 		elsif @t and @t.alive? and msg =~ /^-/
-			send(source, msg[1..-1])
+			send_msg(source, msg[1..-1])
 		end
 	end
 end
