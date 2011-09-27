@@ -2,9 +2,9 @@
 $:.push File.expand_path("../..", __FILE__)
 
 source_dirs = [
-	"lib/",
-	"lib/ext/",
-	"lib/rubot/",
+	"lib",
+	"lib/ext",
+	"lib/rubot",
 ]
 
 # Load all our source files.
