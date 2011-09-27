@@ -21,8 +21,8 @@ class IRCClient < IRCSocketListener
 		ircsocket.add_listener(self)
 	end
 
+	# Connect to the IRC server
 	def connect
-		# Connect to the IRC server
 		@ircsocket.connect
 		@ircsocket.nickname(@nick)
 		@ircsocket.login(@username, "localhost", @ircsocket.host, @realname)
@@ -54,8 +54,8 @@ class IRCClient < IRCSocketListener
 		end
 	end
 
+	# Pretty-print to a channel.
 	def say(recipient, message, action = :privmsg)
-		# Pretty-print to a channel.
 		raise "No recipient" if recipient.nil?
 		return nil if message == ""
 
@@ -259,6 +259,11 @@ class IRCClient < IRCSocketListener
 		@whois = Hash.new
 
 		emit(:on_whois, user)
+	end
+
+	def handle_nickname_in_use
+		@nick += "_"
+		@ircsocket.nickname(@nick)
 	end
 end
 

@@ -149,6 +149,8 @@ private
 		/^307 \S+ (\S+)/ => :handle_whois_registered,
 		/^319 \S+ (\S+) :(.*)/ => :handle_whois_channels,
 		/^318/ => :handle_whois_end,
+
+		/^433/ => :handle_nickname_in_use,
 	}
 
 	# Handle fatal errors from the server.
