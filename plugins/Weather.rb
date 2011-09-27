@@ -22,10 +22,20 @@ class Weather < RubotPlugin
 		return unless @cooldown.trigger_err(source)
 		doc = Nokogiri::HTML(open("http://www.wunderground.com/cgi-bin/" +
 				"findweather/getForecast?query=#{area_code}"))
-		relative_temp = doc.xpath("//div[@id='relativeTemp']")
-				.andand.at(0)
-				.andand.content
-		say(source, relative_temp)
+		if not valid_zip(doc)
+			say(source, "Invalid zip code.")
+		else
+			relative_temp = doc.xpath("//div[@id='relativeTemp']")
+					.andand.at(0)
+					.andand.content
+			say(source, relative_temp)
+		end
+	end
+
+	def valid_zip(doc)
+		message = doc.xpath("//p[@id='message2']")[0]
+		return false if message
+		return true
 	end
 end
 
