@@ -4,42 +4,29 @@ require 'rubygems'
 require 'nokogiri'
 
 class Urban < RubotPlugin
-	attr_accessor :cooldown
+	@@actions = {
+		/:urban\s*(.+)/i => :urban,
+	}
 
 	def initialize
 		super
-		@last = 0
-		@cooldown = 5
+		@cooldown = IRCCooldown.new(self, 5, "You're searching too fast. Wait %d more second%s.")
 	end
 
 	def on_privmsg(user, source, msg)
-		return unless match = msg.match(/:urban (.+)/)
-		return if too_soon(source)
-		word = match[1]
-		definition = urban(word)
-		say(source, definition)
+		RegexJump::jump(@@actions, self, msg, [source])
 	end
 
-	def too_soon(source)
-		time = Time.now
-		if time.to_i < @last.to_i + @cooldown
-			say(source, "I can only do an urban lookup every #{@cooldown} seconds.")
-			return true
-		else
-			return false
-		end
-	end
-
-	def urban(word)
-		@last = Time.now
+	def urban(source, word)
+		return unless @cooldown.trigger_err(source)
 		html = open("http://www.urbandictionary.com/tooltip.php?term=#{word}")
 		doc = Nokogiri::HTML(html)
 		if doc.content.include?("isn't defined yet")
-			return "Not found."
+			say(source, "Not found.")
 		else
 			definition = doc.xpath("//div[2]")[0].content
 			first_line = definition.split(/[\r\n]+/)[1] # [0] is a blank line
-			return first_line
+			say(source, first_line)
 		end
 	end
 end
