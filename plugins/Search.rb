@@ -86,6 +86,7 @@ class Search < RubotPlugin
 				json["RelatedTopics"].andand.at(0).andand["Text"],
 		].find {|x| x && x.length > 0 }
 		if output
+			return nil if output.include?("Safe search")
 			return output.gsub(/<.*?>/, ""). # strip HTML
 				gsub("&nbsp;", ' ')
 		else
@@ -94,20 +95,14 @@ class Search < RubotPlugin
 	end
 
 	def urban(query)
-		html = open("http://www.urbandictionary.com/define.php?term=#{query}")
+		html = open("http://www.urbandictionary.com/tooltip.php?term=#{query}")
 		doc = Nokogiri::HTML(html)
-		words = doc.xpath("//td[@class='word']")
-		definitions = doc.xpath("//div[@class='definition']")
-
-		looking_for = query.gsub('+', ' ').downcase
-		first_result = words[0].andand.content.andand.strip.andand.downcase
-		definition = definitions[0].andand.content
-
-		# Urban gives us results that we weren't looking for.
-		if first_result == looking_for and definition
-			return definition.split(/[\r\n]+/).join("  ") # join lines
-		else
+		if doc.content.include?("isn't defined yet")
 			return nil
+		else
+			definition = doc.xpath("//div[2]")[0].content
+			first_line = definition.split(/[\r\n]+/)[1] # [0] is a blank line
+			return first_line
 		end
 	end
 
