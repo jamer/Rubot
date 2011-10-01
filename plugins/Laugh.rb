@@ -1,11 +1,10 @@
+# Laugh at command.
+#
+# Says "LOL" when someone types "laugh 1"
+# Says "LOLO-" when someone types "laugh 1.5"
+# Says "LOLOL" when someone types "laugh 2"
+# Etc.
 class Laugh < RubotPlugin
-	# Laugh at command.
-	#
-	# Says "LOL" when someone types "laugh 1"
-	# Says "LOLO-" when someone types "laugh 1.5"
-	# Says "LOLOL" when someone types "laugh 2"
-	# Etc.
-
 	@@actions = {
 		/^laugh\s*(\d+(\.\d)?)$/i => :laugh,
 		/laugh/i => :laugh_random,
@@ -16,7 +15,8 @@ class Laugh < RubotPlugin
 
 	def initialize
 		super
-		@cooldown = IRCCooldown.new(self, 5, "I can't laugh that fast. Wait %d more second%s.")
+		@cooldown = IRCCooldown.new(self, 5,
+			"I can't laugh that fast. Wait %d more second%s.")
 	end
 
 	def on_privmsg(user, source, msg)
@@ -42,6 +42,8 @@ class Laugh < RubotPlugin
 		say(source, word)
 	end
 
+	# Laugh from 2-3 times. 10% of the time it will append an extra "O-" as if
+	# cut off in the middle of its laughing.
 	def laugh_random(source)
 		return unless @cooldown.ready_now?
 		reps = rand(2)+1
