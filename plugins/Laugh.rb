@@ -7,7 +7,11 @@ class Laugh < RubotPlugin
 	# Etc.
 
 	@@actions = {
-		/laugh\s*(\d+\.?\d?)/i => :laugh,
+		/^laugh\s*(\d+\.?\d?)$/i => :laugh,
+		/laugh/i => :laugh_random,
+		/lol/i => :laugh_random,
+		/rofl/i => :laugh_random,
+		/lmf?ao/i => :laugh_random,
 	}
 
 	def initialize
@@ -34,6 +38,10 @@ class Laugh < RubotPlugin
 			word += "O-"
 		end
 		say(source, word)
+	end
+
+	def laugh_random(source)
+		laugh(source, rand(3))
 	end
 end
 
