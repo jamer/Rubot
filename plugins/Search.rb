@@ -61,11 +61,18 @@ class Search < RubotPlugin
 	def lookup(term)
 		query = escape(term)
 		x = [
+			proc {|query| custom(term) },
 			proc {|query| ddg(query) },
 			proc {|query| urban(query) },
 			proc {|query| "I don't know." },
 		].map_first {|p| p.call(query) }
 		return x
+	end
+
+	def custom(term)
+		return {
+			"awesome" => "You're awesome."
+		}[term]
 	end
 
 	def ddg(query)
@@ -79,7 +86,8 @@ class Search < RubotPlugin
 				json["RelatedTopics"].andand.at(0).andand["Text"],
 		].find {|x| x && x.length > 0 }
 		if output
-			return output.gsub(/<.*?>/, "") # strip HTML
+			return output.gsub(/<.*?>/, ""). # strip HTML
+				gsub("&nbsp;", ' ')
 		else
 			return nil
 		end

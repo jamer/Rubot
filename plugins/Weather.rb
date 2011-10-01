@@ -11,7 +11,8 @@ class Weather < RubotPlugin
 
 	def initialize
 		super
-		@cooldown = IRCCooldown.new(self, 5, "Please wait %s more second%s to check the weather.")
+		@cooldown = IRCCooldown.new(self, 5,
+			"Please wait %s more second%s to check the weather.")
 	end
 
 	def on_privmsg(user, source, msg)
