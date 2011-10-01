@@ -7,7 +7,7 @@ class Laugh < RubotPlugin
 	# Etc.
 
 	@@actions = {
-		/^laugh\s*(\d+\.?\d?)$/i => :laugh,
+		/^laugh\s*(\d+(\.\d)?)$/i => :laugh,
 		/laugh/i => :laugh_random,
 		/lol/i => :laugh_random,
 		/rofl/i => :laugh_random,
@@ -16,6 +16,7 @@ class Laugh < RubotPlugin
 
 	def initialize
 		super
+		@cooldown = IRCCooldown.new(self, 5, "I can't laugh that fast. Wait %d more second%s.")
 	end
 
 	def on_privmsg(user, source, msg)
@@ -30,7 +31,8 @@ class Laugh < RubotPlugin
 	# Laugh "times" times. If times is a partial decimal, add an extra "O-"
 	# to the end of it. Maximum number of times 25 (plus the O- if we're a
 	# decimal).
-	def laugh(source, times)
+	def laugh(source, times, unused)
+		return unless @cooldown.trigger_err(source)
 		decimal = (times.to_f != times.to_i)
 		times = [times.to_i, 25].min
 		word = first_char + "OL" * times
@@ -41,7 +43,10 @@ class Laugh < RubotPlugin
 	end
 
 	def laugh_random(source)
-		laugh(source, rand(3))
+		return unless @cooldown.ready_now?
+		reps = rand(2)+1
+		reps += 0.5 if rand(10) == 1
+		laugh(source, reps, nil)
 	end
 end
 
