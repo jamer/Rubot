@@ -13,6 +13,10 @@ class Cooldown
 		end
 	end
 
+	def trigger_now
+		@last = now
+	end
+
 	def ready_now?
 		return !too_soon(now)
 	end
