@@ -1,20 +1,20 @@
 # Librarian
 # A Rubot plugin that serves books.
 class Librarian < RubotPlugin
-	@@actions = {
-		/^catalog$/i => :catalog,
-		/^open (.+)/i => :open,
-		/^read$/i => :read,
-		/^resume$/i => :resume,
+	@@actions = [
+		[/^catalog$/i, :catalog],
+		[/^open (.+)/i, :open],
+		[/^read$/i, :read],
+		[/^resume$/i, :resume],
 
-		/^start over$/i => :start_over,
-		/^jump to (\d+)$/i => :jump_to,
+		[/^start over$/i, :start_over],
+		[/^jump to (\d+)$/i, :jump_to],
 
-		/^chunk$/i => :get_chunk,
-		/^set chunk (\d+)$/i => :set_chunk,
+		[/^chunk$/i, :get_chunk],
+		[/^set chunk (\d+)$/i, :set_chunk],
 
-		/^help$/i => :help,
-	}
+		[/^help$/i, :help],
+	]
 
 	def initialize
 		super

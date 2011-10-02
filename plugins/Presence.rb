@@ -1,10 +1,10 @@
 class Presence < RubotPlugin
-	@@actions = {
-		/^:show\s+(\S+)$/i => :show,
-		/^:list$/i => :list,
-		/^:whois\s+(\S+)/i => :scan_whois,
-		/^:who$/i => :scan_who,
-	}
+	@@actions = [
+		[/^:show\s+(\S+)$/i, :show],
+		[/^:list$/i, :list],
+		[/^:whois\s+(\S+)/i, :scan_whois],
+		[/^:who$/i, :scan_who],
+	]
 
 	def initialize
 		super

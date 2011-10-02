@@ -2,10 +2,10 @@
 # persistent storage in this plugin, so channels will have to be readded on
 # each run.
 class Rejoin < RubotPlugin
-	@@actions = {
-		/^:rejoin (.+)/i => :rejoin,
-		/^:norejoin (.+)/i => :norejoin,
-	}
+	@@actions = [
+		[/^:rejoin (.+)/i, :rejoin],
+		[/^:norejoin (.+)/i, :norejoin],
+	]
 
 	def initialize
 		super

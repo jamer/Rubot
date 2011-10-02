@@ -1,7 +1,7 @@
 class Rage < RubotPlugin
-	@@actions = {
-		/the game/i => :rage,
-	}
+	@@actions = [
+		[/the game/i, :rage]
+	]
 
 	def initialize
 		super

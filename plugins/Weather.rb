@@ -5,9 +5,9 @@ require 'andand'
 require 'nokogiri'
 
 class Weather < RubotPlugin
-	@@actions = {
-		/^:weather (\d+)$/i => :weather
-	}
+	@@actions = [
+		[/^:weather (\d+)$/i, :weather]
+	]
 
 	def initialize
 		super

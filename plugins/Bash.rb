@@ -4,13 +4,14 @@ require 'rubygems'
 require 'nokogiri'
 
 class Bash < RubotPlugin
-	@@actions = {
-		/^:bash$/i => :bash
-	}
+	@@actions = [
+		[/^:bash$/i, :bash]
+	]
 
 	def initialize
 		super
-		@cooldown = IRCCooldown.new(self, 5, "Please wait %s more second%s for a quote.")
+		@cooldown = IRCCooldown.new(self, 5,
+			"Please wait %s more second%s for a quote.")
 	end
 
 	def on_privmsg(user, source, msg)

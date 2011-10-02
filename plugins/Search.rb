@@ -12,13 +12,13 @@ require 'andand'
 require 'nokogiri'
 
 class Search < RubotPlugin
-	@@actions = {
-		/:search\s*(.+)/i => :search1,
-		/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+|\s+a+r+e+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i => :search11,
-		/^(t+e+l+l+)\s+(m+e+|u+s+|e+v+e+r+y+o+n+e+|h+i+m+|h+e+r+|t+h+e+m+)\s+(w+(h+)?a+t+|w+h+o+|(a+)?b+o+u+t+)\s+(i+s+|a+(n+)?|a+r+e+|)+(.+?)(\s+i+s+|\s+a+r+e+|\/|\\|\.|\?|!|$)/i => :search8,
-		/^jamer(\S*)?(:|,)?\s+(hi|hey|hello|sup|yo)/i => :say_hi,
-		/^(hi|hey|hello|sup|yo)(.+?)?\s+jamer/i => :say_hi,
-	}
+	@@actions = [
+		[/:search\s*(.+)/i, :search1],
+		[/^(w+(h+)?[ao]+t+|w+(h+)?o+|w+[dt]+[fh]+)(\s+(t+h+e+|i+n+|o+n+)\s+(.+?))?((\'+?)?s+|\s+i+s+|\s+a+r+e+)\s+(a+(n+)?\s+)?(.+?)(\/|\\|\.|\?|!|$)/i, :search11],
+		[/^(t+e+l+l+)\s+(m+e+|u+s+|e+v+e+r+y+o+n+e+|h+i+m+|h+e+r+|t+h+e+m+)\s+(w+(h+)?a+t+|w+h+o+|(a+)?b+o+u+t+)\s+(i+s+|a+(n+)?|a+r+e+|)+(.+?)(\s+i+s+|\s+a+r+e+|\/|\\|\.|\?|!|$)/i, :search8],
+		[/^jamer(\S*)?(:|,)?\s+(hi|hey|hello|sup|yo)/i, :say_hi],
+		[/^(hi|hey|hello|sup|yo)(.+?)?\s+jamer/i, :say_hi],
+	]
 
 	def initialize
 		super

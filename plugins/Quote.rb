@@ -1,11 +1,11 @@
 class Quote < RubotPlugin
 	@@file = "quotes.txt"
 
-	@@actions = {
-		/^:quote add (.+)/i => :add,
-		/^:quote show (\d+)/i => :show,
-		/^:quote find (.+)/i => :find,
-	}
+	@@actions = [
+		[/^:quote add (.+)/i, :add],
+		[/^:quote show (\d+)/i, :show],
+		[/^:quote find (.+)/i, :find],
+	]
 
 	def initialize
 		super

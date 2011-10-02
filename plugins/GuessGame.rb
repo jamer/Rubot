@@ -1,9 +1,9 @@
 class GuessGame < RubotPlugin
 	# Random number guessing game.
-	@@actions = {
-		/:guess/i => :start_game,
-		/:#\s*(\d+)/ => :do_guess,
-	}
+	@@actions = [
+		[/:guess/i, :start_game],
+		[/:#\s*(\d+)/, :do_guess],
+	]
 
 	def initialize
 		super

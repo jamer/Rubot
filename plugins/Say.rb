@@ -1,8 +1,8 @@
 class Say < RubotPlugin
-	@@actions = {
-		/^say (.+)/i => :speak,
-		/^tell (\S+) (.+)/i => :speak_to,
-	}
+	@@actions = [
+		[/^say (.+)/i, :speak],
+		[/^tell (\S+) (.+)/i, :speak_to],
+	]
 
 	def initialize
 		super

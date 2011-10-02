@@ -4,13 +4,14 @@ require 'rubygems'
 require 'nokogiri'
 
 class Urban < RubotPlugin
-	@@actions = {
-		/:urban\s*(.+)/i => :urban,
-	}
+	@@actions = [
+		[/:urban\s*(.+)/i, :urban]
+	]
 
 	def initialize
 		super
-		@cooldown = IRCCooldown.new(self, 5, "You're searching too fast. Wait %d more second%s.")
+		@cooldown = IRCCooldown.new(self, 5,
+			"You're searching too fast. Wait %d more second%s.")
 	end
 
 	def on_privmsg(user, source, msg)

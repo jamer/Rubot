@@ -69,9 +69,9 @@ class Chess < RubotPlugin
 		RegexJump::jump(@@actions, self, msg, [user, source])
 	end
 
-	@@actions = {
-		/^:display$/i => :display,
-	}
+	@@actions = [
+		[/^:display$/i, :display]
+	]
 
 	def game
 		@game |= Game.new

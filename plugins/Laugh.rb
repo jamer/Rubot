@@ -5,13 +5,12 @@
 # Says "LOLOL" when someone types "laugh 2"
 # Etc.
 class Laugh < RubotPlugin
-	@@actions = {
-		/^laugh\s*(\d+(\.\d)?)$/i => :laugh,
-		/laugh/i => :laugh_random,
-		/lol/i => :laugh_random,
-		/rofl/i => :laugh_random,
-		/lmf?ao/i => :laugh_random,
-	}
+	@@actions = [
+		[/^laugh\s*(\d+(\.\d)?)$/i, :laugh],
+		[/lol/i, :laugh_random],
+		[/rofl/i, :laugh_random],
+		[/lmf?ao/i, :laugh_random],
+	]
 
 	def initialize
 		super

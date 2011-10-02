@@ -1,10 +1,10 @@
 class Typo < RubotPlugin
-	@@actions = {
-		/^s\/(.+)\/(.+?)\/?$/ => :correct_self,                   # s/old/new/
-		/^(\S+?)\/(.+)\/(.+?)\/?$/ => :correct_other,             # nick/old/new/
-		/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/ => :correct_other, # nick: s/old/new/
-		/(.+)/ => :remember_line,
-	}
+	@@actions = [
+		[/^s\/(.+)\/(.+?)\/?$/, :correct_self],                   # s/old/new/
+		[/^(\S+?)\/(.+)\/(.+?)\/?$/, :correct_other],             # nick/old/new/
+		[/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/, :correct_other], # nick: s/old/new/
+		[/(.+)/, :remember_line],
+	]
 
 	def initialize
 		super

@@ -1,12 +1,12 @@
 # General use IRC bot
 class General < RubotPlugin
-	@@actions = {
-		/^:join (.+)/i => :join,
-		/^:part (.+)/i => :part,
-		/^:leave (.+)/i => :part,
-		/^:part$/i => :part_this,
-		/^:leave$/i => :part_this,
-	}
+	@@actions = [
+		[/^:join (.+)/i, :join],
+		[/^:part (.+)/i, :part],
+		[/^:leave (.+)/i, :part],
+		[/^:part$/i, :part_this],
+		[/^:leave$/i, :part_this],
+	]
 
 	def initialize
 		super
