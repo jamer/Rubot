@@ -12,16 +12,23 @@ class MarkovChainer
 
 	def add_text(text)
 		# Make sure each line ends with some sentence terminator.
-		text.gsub!(/\n/m, ".")
+		text.gsub!(/[\n\r]+/m, " . ")
 		text << "."
-		seps = /(https?:\/\/\S+.*[.!?]|[.!?])/
+		seps = /(https?:\/\/\S+|[.!?]($|\s))/
 		sentence = ""
-		text.split(seps).each { |p|
+		text.split(seps).grep(/\S/).each { |p|
+			puts "TEXT TOKEN #{p}"
 			if seps =~ p
+				puts "ADDING SENTENCE"
 				add_sentence(sentence, p)
 				sentence = ""
 			else
-				sentence = p
+				if sentence == ""
+					puts "ASSIGNING SENTENCE"
+				else
+					puts "APPENDING SENTENCE"
+				end
+				sentence += p
 			end
 		}
 	end
@@ -77,10 +84,10 @@ private
 end
 
 class Markov < RubotPlugin
-	@@actions = {
-		/^:generate\s+(\S.*)/i => :generate_led,
-		/^:generate/i => :generate_default,
-	}
+	@@actions = [
+		[/^:generate\s+(\S.*)/i, :generate_led],
+		[/^:generate/i, :generate_default],
+	]
 
 	def initialize
 		super
@@ -133,6 +140,7 @@ private
 		say(source, "Constructing initial data structures...")
 		@mc = MarkovChainer.new(1)
 		Dir.glob("privmsg_logs/*.txt").each do |file|
+			puts "Adding #{file}"
 			@mc.add_text(IO.read(file))
 		end
 #		@mc.add_text(IO.read("privmsg_logs/White.txt"))
