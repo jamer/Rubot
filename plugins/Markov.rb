@@ -1,0 +1,144 @@
+# Random sentence generator built using Markov chains
+
+# A sentence-parsing markov chain that can generate new sentences.
+class MarkovChainer
+	attr_reader :order, :beginnings, :freq
+
+	def initialize(order)
+		@order = order
+		@beginnings = []
+		@freq = {}
+	end
+
+	def add_text(text)
+		# Make sure each line ends with some sentence terminator.
+		text.gsub!(/\n/m, ".")
+		text << "."
+		seps = /(https?:\/\/\S+.*[.!?]|[.!?])/
+		sentence = ""
+		text.split(seps).each { |p|
+			if seps =~ p
+				add_sentence(sentence, p)
+				sentence = ""
+			else
+				sentence = p
+			end
+		}
+	end
+
+	def generate_sentence
+		res = @beginnings[rand(@beginnings.size)]
+		return generate_sentence_from(res)
+	end
+
+	def generate_sentence_from(beginning)
+		res = beginning
+		loop do
+			unless nw = next_word_for(res[-@order, @order])
+				return res[0..-2].join(' ') + res.last
+			end
+			res << nw
+		end
+		return res
+	end
+
+private
+
+	def add_sentence(str, terminator)
+		words = str.scan(word_is)
+		return unless words.size >= @order # Ignore short sentences.
+		words[0][0..0] = words[0][0..0].upcase # Capitalize sentence.
+		words << terminator
+		buf = []
+		words.each do |w|
+			buf << w
+			if buf.size >= @order + 1
+				(@freq[buf[0..-2]] ||= []) << buf[-1]
+				buf.shift
+			end
+		end
+		@beginnings << words[0, @order]
+	end
+
+	def next_word_for(words)
+		arr = @freq[words]
+		arr && arr[rand(arr.size)]
+	end
+
+	def word_is
+		if @order == 1
+			return /[a-zA-Z0-9$,'-_]+/
+		elsif @order == 2
+			return /[a-zA-Z0-9$,'-_:;\/]+/
+		else
+			return /[a-zA-Z0-9$,'"-_:;\/\(\)]+/
+		end
+	end
+end
+
+class Markov < RubotPlugin
+	@@actions = {
+		/^:generate\s+(\S.*)/i => :generate_led,
+		/^:generate/i => :generate_default,
+	}
+
+	def initialize
+		super
+		@cooldown = IRCCooldown.new(self, 3,
+			"Please wait %s more second%s to generate a sentence.")
+	end
+
+	def on_privmsg(user, source, msg)
+		jumped = RegexJump::jump(@@actions, self, msg, [source])
+		add_line(msg) if not jumped and valid_line(msg)
+	end
+
+	def generate_default(source)
+		return unless @cooldown.trigger_err(source)
+		initialize_mc(source) if not defined?(@mc)
+		say(source, @mc.generate_sentence)
+	end
+
+	def generate_led(source, words)
+		return unless @cooldown.trigger_err(source)
+		initialize_mc(source) if not defined?(@mc)
+		words = words.split
+		words[0][0..0] = words[0][0..0].upcase # Capitalize first word.
+		if words.length != @mc.order
+			say(source, "Must initialize with #{@mc.order} word%s." %
+				(@mc.order == 1 ? "" : "s"))
+		elsif !@mc.beginnings.include?(words)
+			say(source, "State not found.")
+		else
+			sentence = @mc.generate_sentence_from(words)
+			say(source, sentence)
+		end
+	end
+
+private
+
+	def valid_line(msg)
+		return !msg.match(/\x01/) && !msg.match(/[\x80-\xff]/)
+	end
+
+	def add_line(msg)
+		@mc.add_text(msg) if defined?(@mc)
+		open("privmsg_logs/#{@client.nick}.txt", "a") do |f|
+			f.puts(msg)
+		end
+	end
+
+	def initialize_mc(source)
+		before = Time.now
+		say(source, "Constructing initial data structures...")
+		@mc = MarkovChainer.new(1)
+		Dir.glob("privmsg_logs/*.txt").each do |file|
+			@mc.add_text(IO.read(file))
+		end
+#		@mc.add_text(IO.read("privmsg_logs/White.txt"))
+		after = Time.now
+		say(source, "Took #{after-before} seconds.")
+		@cooldown.trigger_now
+	end
+end
+
