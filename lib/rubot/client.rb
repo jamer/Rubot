@@ -1,3 +1,5 @@
+require './lib/rubot/socket'
+
 # Each IRCClient represents one connection to a server.
 class IRCClient < IRCSocketListener
 	attr_reader :nick, :username, :realname
