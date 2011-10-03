@@ -1,5 +1,8 @@
 # Random sentence generator built using Markov chains
 
+# Require C extension.
+require './ext/markov'
+
 # A sentence-parsing markov chain that can generate new sentences.
 class MarkovChainer
 	attr_reader :order, :beginnings, :freq
@@ -85,8 +88,7 @@ end
 
 class Markov < RubotPlugin
 	@@actions = [
-		[/^:generate\s+(\S.*)/i, :generate_led],
-		[/^:generate/i, :generate_default],
+		[/^:generate/i, :generate],
 	]
 
 	def initialize
@@ -100,26 +102,10 @@ class Markov < RubotPlugin
 		add_line(msg) if not jumped and valid_line(msg)
 	end
 
-	def generate_default(source)
+	def generate(source)
 		return unless @cooldown.trigger_err(source)
 		initialize_mc(source) if not defined?(@mc)
 		say(source, @mc.generate_sentence)
-	end
-
-	def generate_led(source, words)
-		return unless @cooldown.trigger_err(source)
-		initialize_mc(source) if not defined?(@mc)
-		words = words.split
-		words[0][0..0] = words[0][0..0].upcase # Capitalize first word.
-		if words.length != @mc.order
-			say(source, "Must initialize with #{@mc.order} word%s." %
-				(@mc.order == 1 ? "" : "s"))
-		elsif !@mc.beginnings.include?(words)
-			say(source, "State not found.")
-		else
-			sentence = @mc.generate_sentence_from(words)
-			say(source, sentence)
-		end
 	end
 
 private
@@ -138,12 +124,11 @@ private
 	def initialize_mc(source)
 		before = Time.now
 		say(source, "Constructing initial data structures...")
-		@mc = MarkovChainer.new(1)
+		@mc = MarkovChain.new()
 		Dir.glob("privmsg_logs/*.txt").each do |file|
 			puts "Adding #{file}"
 			@mc.add_text(IO.read(file))
 		end
-#		@mc.add_text(IO.read("privmsg_logs/White.txt"))
 		after = Time.now
 		say(source, "Took #{after-before} seconds.")
 		@cooldown.trigger_now
