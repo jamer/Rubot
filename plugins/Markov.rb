@@ -20,17 +20,10 @@ class MarkovChainer
 		seps = /(https?:\/\/\S+|[.!?]($|\s))/
 		sentence = ""
 		text.split(seps).grep(/\S/).each { |p|
-			puts "TEXT TOKEN #{p}"
 			if seps =~ p
-				puts "ADDING SENTENCE"
 				add_sentence(sentence, p)
 				sentence = ""
 			else
-				if sentence == ""
-					puts "ASSIGNING SENTENCE"
-				else
-					puts "APPENDING SENTENCE"
-				end
 				sentence += p
 			end
 		}
@@ -122,16 +115,16 @@ private
 	end
 
 	def initialize_mc(source)
-		before = Time.now
-		say(source, "Constructing initial data structures...")
-		@mc = MarkovChain.new()
+#		before = Time.now
+#		say(source, "Constructing initial data structures...")
+		@mc = MarkovChain.new
 		Dir.glob("privmsg_logs/*.txt").each do |file|
 			puts "Adding #{file}"
 			@mc.add_text(IO.read(file))
 		end
-		after = Time.now
-		say(source, "Took #{after-before} seconds.")
-		@cooldown.trigger_now
+#		after = Time.now
+#		say(source, "Took #{after-before} seconds.")
+#		@cooldown.trigger_now
 	end
 end
 

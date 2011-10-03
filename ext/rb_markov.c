@@ -1,38 +1,24 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <ruby.h>
 
 #include "markov.h"
 
-VALUE rb_mar_new(VALUE class);
-static void rb_mar_free(void *m);
-VALUE rb_mar_init(VALUE self);
-VALUE rb_mar_add_text(VALUE self, VALUE text);
-VALUE rb_mar_gen_sent(VALUE self);
-
-VALUE rb_mar_new(VALUE class)
+static VALUE rb_mar_new(VALUE class)
 {
 	struct markov *m;
 	VALUE obj;
 
 	m = create_mar();
-	obj = Data_Wrap_Struct(class, 0, rb_mar_free, m);
+	obj = Data_Wrap_Struct(class, 0, free_mar, m);
 	rb_obj_call_init(obj, 0, NULL);
 	return obj;
 }
 
-static void rb_mar_free(void *mar)
-{
-	free_mar((struct markov*)mar);
-}
-
-VALUE rb_mar_init(VALUE self)
+static VALUE rb_mar_init(VALUE self)
 {
 	return self;
 }
 
-VALUE rb_mar_add_text(VALUE self, VALUE text)
+static VALUE rb_mar_add_text(VALUE self, VALUE text)
 {
 	struct markov *m;
 	char *s;
@@ -43,7 +29,7 @@ VALUE rb_mar_add_text(VALUE self, VALUE text)
 	return Qnil;
 }
 
-VALUE rb_mar_gen_sent(VALUE self)
+static VALUE rb_mar_gen_sent(VALUE self)
 {
 	struct markov *m;
 	char *s;
