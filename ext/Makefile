@@ -44,7 +44,7 @@ LIBRUBYARG_SHARED = -l$(RUBY_SO_NAME)
 LIBRUBYARG_STATIC = -l$(RUBY_SO_NAME)-static
 
 RUBY_EXTCONF_H = 
-CFLAGS   =  -fPIC -fno-strict-aliasing -g -g -O2  -fPIC $(cflags) 
+CFLAGS   =  -fPIC -fno-strict-aliasing -g -g  -fPIC $(cflags) 
 INCFLAGS = -I. -I$(topdir) -I$(hdrdir) -I$(srcdir)
 DEFS     = 
 CPPFLAGS =   $(DEFS) $(cppflags)

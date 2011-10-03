@@ -104,7 +104,8 @@ class Markov < RubotPlugin
 private
 
 	def valid_line(msg)
-		return !msg.match(/\x01/) && !msg.match(/[\x80-\xff]/)
+		# Only accept ASCII lines without NULLs or IRC control characters.
+		return !msg.match(/[\x00\x01\x80-\xff]/)
 	end
 
 	def add_line(msg)
@@ -118,13 +119,13 @@ private
 #		before = Time.now
 #		say(source, "Constructing initial data structures...")
 		@mc = MarkovChain.new
-		Dir.glob("privmsg_logs/*.txt").each do |file|
-			puts "Adding #{file}"
-			@mc.add_text(IO.read(file))
-		end
+#		Dir.glob("privmsg_logs/*.txt").each do |file|
+#			@mc.add_text(IO.read(file))
+#		end
+		@mc.add_text(IO.read("privmsg_logs/White.txt"))
 #		after = Time.now
 #		say(source, "Took #{after-before} seconds.")
-#		@cooldown.trigger_now
+		@cooldown.trigger_now
 	end
 end
 
