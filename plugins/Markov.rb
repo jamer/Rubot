@@ -209,6 +209,8 @@ class Markov < RubotPlugin
 		[/^:generate/i, :generate],
 		[/^:populate/i, :populate],
 		[/^:vacuum/i, :vacuum],
+		[/^:replyrate! (\d+)/i, :set_replyrate],
+		[/^:replyrate\?/i, :get_replyrate],
 	]
 
 	def initialize
@@ -216,6 +218,8 @@ class Markov < RubotPlugin
 		@working = false
 		@cooldown = IRCCooldown.new(self, 3,
 			"Please wait %s more second%s to generate a sentence.")
+		@replyrate = 1
+		@replies = 0
 #		@backend = SqliteMC.new(1)
 		@backend = MemMC.new(1)
 		@mc = EnglishMC.new(@backend)
@@ -224,8 +228,25 @@ class Markov < RubotPlugin
 	def on_privmsg(user, source, msg)
 		return if @working
 		jumped = RegexJump::jump(@@actions, self, msg, [user, source])
-		@cooldown.trigger_now if jumped # For long operations.
 		add_line(rm_nicks(msg)) if not jumped and valid_line(msg)
+		handle_autoreply(user, source, msg)
+		@cooldown.trigger_now if jumped # For long operations.
+	end
+
+	def handle_autoreply(user, source, msg)
+		if rand(100) < @replyrate
+			@replies += 1
+		end
+		if @replies > 0 and @cooldown.trigger
+			words = msg.split
+			word = words[rand(words.size)]
+			sent = @mc.generate_sentence_from([word])
+			if sent
+				sent[0..0] = sent[0..0].upcase # Capitalize sentence.
+				@replies -= 1
+				say(source, put_nicks(sent, user.nick))
+			end
+		end
 	end
 
 	def generate(user, source)
@@ -269,6 +290,15 @@ class Markov < RubotPlugin
 				say(source, "Reduced database size by #{reduced} bytes.")
 			}
 		}
+	end
+
+	def set_replyrate(user, source, rate)
+		@replyrate = rate
+		say(source, "Reply rate set to #{rate}%.")
+	end
+
+	def get_replyrate(user, source)
+		say(source, "Reply rate is currently at #{@replyrate}%.")
 	end
 
 private
