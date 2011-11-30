@@ -310,14 +310,16 @@ private
 
 	def rm_nicks(str)
 		Users.each do |nick, user|
-			str.gsub!(nick, NICK_SUB)
+			safe_nick = Regexp.escape(nick)
+			str.gsub!(/#{safe_other_nick}/i, NICK_SUB)
 		end
 		return str
 	end
 
 	def put_nicks(str, nick)
 		Users.each do |other_nick, user|
-			str.gsub!(other_nick, nick)
+			safe_other_nick = Regexp.escape(other_nick)
+			str.gsub!(/#{safe_other_nick}/i, nick)
 		end
 		return str.gsub(NICK_SUB, nick)
 	end
