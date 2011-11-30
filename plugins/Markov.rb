@@ -316,6 +316,9 @@ private
 	end
 
 	def put_nicks(str, nick)
+		Users.each do |other_nick, user|
+			str.gsub!(other_nick, nick)
+		end
 		return str.gsub(NICK_SUB, nick)
 	end
 
