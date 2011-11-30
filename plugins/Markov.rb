@@ -205,10 +205,10 @@ end
 
 class Markov < RubotPlugin
 	@@actions = [
-		[/^:generate (\d+)/i, :generate_x],
-		[/^:generate/i, :generate],
+#		[/^:generate (\d+)/i, :generate_x],
+#		[/^:generate/i, :generate],
 		[/^:populate/i, :populate],
-		[/^:vacuum/i, :vacuum],
+#		[/^:vacuum/i, :vacuum],
 		[/^:replyrate! (\d+)/i, :set_replyrate],
 		[/^:replyrate\?/i, :get_replyrate],
 	]
@@ -220,6 +220,7 @@ class Markov < RubotPlugin
 			"Please wait %s more second%s to generate a sentence.")
 		@replyrate = 1
 		@replies = 0
+		@populated = false
 #		@backend = SqliteMC.new(1)
 		@backend = MemMC.new(1)
 		@mc = EnglishMC.new(@backend)
@@ -266,6 +267,7 @@ class Markov < RubotPlugin
 	end
 
 	def populate(user, source)
+		return if @populated
 		work {
 			track_time(source) {
 				say(source, "Constructing database...")
@@ -274,6 +276,7 @@ class Markov < RubotPlugin
 					@mc.add_text(IO.read(file))
 				end
 				say(source, "Finished.")
+				@populated = true
 			}
 		}
 	end
