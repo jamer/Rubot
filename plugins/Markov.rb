@@ -193,11 +193,11 @@ private
 
 	def is_word
 		if @order == 1
-			return /[a-zA-Z0-9$,'-_]+/
+			return /[a-zA-Z0-9#$,'-_]+/
 		elsif @order == 2
-			return /[a-zA-Z0-9$,'-_:;\/]+/
+			return /[a-zA-Z0-9#$,'-_:;\/]+/
 		else
-			return /[a-zA-Z0-9$,'"-_:;\/\(\)]+/
+			return /[a-zA-Z0-9#$,'"-_:;\/\(\)]+/
 		end
 	end
 end
