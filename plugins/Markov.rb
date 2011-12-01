@@ -10,13 +10,9 @@ class MemMC
 		clear
 	end
 
-	def add_beginning(state)
-		@beg << state
-	end
-
-	def add_follow(lead, follow)
-		@freq[lead] ||= []
-		@freq[lead] << follow
+	def put(lead, follow)
+		@states[lead] ||= []
+		@states[lead] << follow
 	end
 
 	def single_transaction(&block)
@@ -24,20 +20,23 @@ class MemMC
 	end
 
 	def get_beginning
-		len = @beg.size
-		return [ @beg[rand(len)] ]
+		beg = @states.keys
+		len = beg.size
+		return len > 0 ? [ beg[rand(len)] ] : nil
 	end
 
 	def get_follow(state)
-		possible = @freq[state]
-		return nil if possible.nil?
-		len = possible.size
-		return [ possible[rand(len)] ]
+		possible = @states[state]
+		if possible
+			len = possible.size
+			return [ possible[rand(len)] ]
+		else
+			return nil
+		end
 	end
 
 	def clear
-		@beg = []
-		@freq = {}
+		@states = {}
 	end
 end
 
@@ -175,12 +174,12 @@ private
 			if buf.size >= @order + 1
 				lead = buf[0..-2]
 				follow = buf[-1]
-				@impl.add_follow(lead.join(' '), follow)
+				@impl.put(lead.join(' '), follow)
 				buf.shift
 			end
 		end
-		beg = words[0, @order]
-		@impl.add_beginning(beg.join(' '))
+#		beg = words[0, @order]
+#		@impl.add_beginning(beg.join(' '))
 	end
 
 	def next_word_for(words)
@@ -207,7 +206,7 @@ class Markov < RubotPlugin
 	@@actions = [
 #		[/^:generate (\d+)/i, :generate_x],
 #		[/^:generate/i, :generate],
-		[/^:populate/i, :populate],
+#		[/^:populate/i, :handle_populate],
 #		[/^:vacuum/i, :vacuum],
 		[/^:replyrate! (\d+)/i, :set_replyrate],
 		[/^:replyrate\?/i, :get_replyrate],
@@ -224,17 +223,27 @@ class Markov < RubotPlugin
 #		@backend = SqliteMC.new(1)
 		@backend = MemMC.new(1)
 		@mc = EnglishMC.new(@backend)
+
+		work {
+			# The MemMC needs to be initially populated.
+			populate
+
+			# Give a cute message showing we're done loading.
+			@client.channels.each do |ch_name, ch_ob|
+				say(ch_name, "ACTION wakes up and yawns.")
+			end
+		}
 	end
 
 	def on_privmsg(user, source, msg)
-		return if @working
 		jumped = RegexJump::jump(@@actions, self, msg, [user, source])
-		add_line(rm_nicks(msg)) if not jumped and valid_line(msg)
-		check_for_autoreply(user, source, msg)
+		add_line(rm_nicks(msg)) if not jumped and valid_line(msg) and not @working
+		check_for_autoreply(user, source, msg) if @populated and not @working
 		@cooldown.trigger_now if jumped # For long operations.
 	end
 
 	def generate(user, source)
+		return if @working
 		return unless @cooldown.trigger_err(source)
 		sent = @mc.generate_sentence
 		say(source, put_nicks(sent, user.nick)) if sent
@@ -250,22 +259,27 @@ class Markov < RubotPlugin
 		}
 	end
 
-	def populate(user, source)
-		return if @populated
+	def handle_populate(user, source)
+		return if @populated or @working
 		work {
 			track_time(source) {
 				say(source, "Constructing database...")
-				@backend.clear
-				Dir.glob("privmsg_logs/*.txt").each do |file|
-					@mc.add_text(IO.read(file))
-				end
+				populate
 				say(source, "Finished.")
-				@populated = true
 			}
 		}
 	end
 
+	def populate
+		@backend.clear
+		Dir.glob("privmsg_logs/*.txt").each do |file|
+			@mc.add_text(IO.read(file))
+		end
+		@populated = true
+	end
+
 	def vacuum(user, source)
+		return if @working
 		if not @backend.respond_to? :vacuum
 			say(source, "Current markov backend does not need vacuuming.")
 			return
@@ -295,7 +309,7 @@ private
 	def rm_nicks(str)
 		Users.each do |nick, user|
 			safe_nick = Regexp.escape(nick)
-			str = str.gsub(/#{safe_nick}/i, NICK_SUB)
+			str = str.gsub(/\b#{safe_nick}\b/i, NICK_SUB)
 		end
 		return str
 	end
@@ -303,7 +317,7 @@ private
 	def put_nicks(str, nick)
 		Users.each do |other_nick, user|
 			safe_other_nick = Regexp.escape(other_nick)
-			str = str.gsub(/#{safe_other_nick}/i, nick)
+			str = str.gsub(/\b#{safe_other_nick}\b/i, nick)
 		end
 		return str.gsub(NICK_SUB, nick)
 	end
