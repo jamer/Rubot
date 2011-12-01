@@ -230,24 +230,8 @@ class Markov < RubotPlugin
 		return if @working
 		jumped = RegexJump::jump(@@actions, self, msg, [user, source])
 		add_line(rm_nicks(msg)) if not jumped and valid_line(msg)
-		handle_autoreply(user, source, msg)
+		check_for_autoreply(user, source, msg)
 		@cooldown.trigger_now if jumped # For long operations.
-	end
-
-	def handle_autoreply(user, source, msg)
-		if rand(100) < @replyrate
-			@replies += 1
-		end
-		if @replies > 0 and @cooldown.trigger
-			words = msg.split
-			word = words[rand(words.size)]
-			sent = @mc.generate_sentence_from([word])
-			if sent
-				sent[0..0] = sent[0..0].upcase # Capitalize sentence.
-				@replies -= 1
-				say(source, put_nicks(sent, user.nick))
-			end
-		end
 	end
 
 	def generate(user, source)
@@ -311,7 +295,7 @@ private
 	def rm_nicks(str)
 		Users.each do |nick, user|
 			safe_nick = Regexp.escape(nick)
-			str.gsub!(/#{safe_other_nick}/i, NICK_SUB)
+			str = str.gsub(/#{safe_nick}/i, NICK_SUB)
 		end
 		return str
 	end
@@ -319,9 +303,33 @@ private
 	def put_nicks(str, nick)
 		Users.each do |other_nick, user|
 			safe_other_nick = Regexp.escape(other_nick)
-			str.gsub!(/#{safe_other_nick}/i, nick)
+			str = str.gsub(/#{safe_other_nick}/i, nick)
 		end
 		return str.gsub(NICK_SUB, nick)
+	end
+
+	def includes_my_nick(str)
+		return str.downcase.include?(@client.nick.downcase)
+	end
+
+	def check_for_autoreply(user, source, msg)
+		if rand(100) < @replyrate
+			@replies += 1
+		end
+		if (@replies > 0 || includes_my_nick(msg)) and @cooldown.trigger
+			do_autoreply(user, source, rm_nicks(msg))
+		end
+	end
+
+	def do_autoreply(user, source, msg)
+		words = msg.split
+		word = words[rand(words.size)]
+		sent = @mc.generate_sentence_from([word])
+		if sent
+			sent[0..0] = sent[0..0].upcase # Capitalize sentence.
+			@replies -= 1 if @replies > 0
+			say(source, put_nicks(sent, user.nick))
+		end
 	end
 
 	# Work in a background thread so we don't disconnect if we take too long, and
