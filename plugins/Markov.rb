@@ -304,7 +304,7 @@ class Markov < RubotPlugin
 
 private
 
-	NICK_SUB = "::NICK::"
+	NICK_SUB = "#nick"
 
 	def rm_nicks(str)
 		Users.each do |nick, user|
