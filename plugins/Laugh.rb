@@ -44,6 +44,7 @@ class Laugh < RubotPlugin
 	# Laugh from 2-3 times. 10% of the time it will append an extra "O-" as if
 	# cut off in the middle of its laughing.
 	def laugh_random(source)
+		return unless rand < 0.2
 		return unless @cooldown.ready_now?
 		reps = rand(2)+1
 		reps += 0.5 if rand(10) == 1
