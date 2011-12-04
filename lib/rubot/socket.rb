@@ -1,9 +1,6 @@
 require 'socket'
 require 'openssl'
 
-require 'rubygems'
-require 'andand'
-
 # Semantic class only. Shows that subclasses listen to an IRCSocket.
 class IRCSocketListener
 end

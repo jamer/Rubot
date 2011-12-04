@@ -9,7 +9,8 @@ source_dirs = [
 
 # Load all our source files.
 source_dirs.each do |dir| 
-	files = Dir.glob("#{dir}/*.rb").reject {|f| f == __FILE__ }
+	files = Dir.glob("#{dir}/*.rb")
+	files = files.reject {|f| f == __FILE__ }
 	files.each do |file|
 		require file
 	end

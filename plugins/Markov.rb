@@ -51,11 +51,6 @@ class SqliteMC
 		@db = SQLite3::Database.new(DB_FILE)
 		init_db if db_empty?
 		@add_freq_prep = @db.prepare("INSERT INTO freq VALUES(?, ?)")
-		@add_beg_prep = @db.prepare("INSERT INTO beginnings VALUES(?)")
-	end
-
-	def add_beginning(state)
-		@add_beg_prep.execute(state)
 	end
 
 	def add_follow(lead, follow)

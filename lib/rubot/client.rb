@@ -1,4 +1,5 @@
-require './lib/rubot/socket'
+# Ensure we have our IRCSocketListener defined already.
+require 'lib/rubot/socket'
 
 # Each IRCClient represents one connection to a server.
 class IRCClient < IRCSocketListener
