@@ -1,8 +1,11 @@
 class Typo < RubotPlugin
 	@@actions = [
-		[/^s\/(.+)\/(.+?)\/?$/, :correct_self],                   # s/old/new/
-		[/^(\S+?)\/(.+)\/(.+?)\/?$/, :correct_other],             # nick/old/new/
-		[/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/, :correct_other], # nick: s/old/new/
+		[/^s\/(.+)\/(.+?)\/?$/                 , :correct_self],  # s/old/new/
+		[/^s,(.+),(.+?),?$/                    , :correct_self],  # s,old,new,
+		[/^(\S+?)\/(.+)\/(.+?)\/?$/            , :correct_other], # nick/old/new/
+		[/^(\S+?),(.+),(.+?),?$/               , :correct_other], # nick,old,new,
+# broken
+#		[/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/, :correct_other], # nick: s/old/new/
 		[/(.+)/, :remember_line],
 	]
 
@@ -47,8 +50,8 @@ class Typo < RubotPlugin
 
 	def remember_line(user, source, msg)
 		nick = user.nick
-		if msg =~ /\001/
-			msg.sub!(/^\001ACTION/, "* " + user.nick)
+		if msg =~ /^\001/
+			msg.sub!(/^\001ACTION/, "* #{user.nick}")
 			msg.sub!(/\001$/, "")
 		end
 		add_history_item(nick, msg)
