@@ -7,7 +7,7 @@
 class Laugh < RubotPlugin
 	@@actions = [
 		[/^laugh\s*(\d+(\.\d)?)$/i, :laugh],
-		[/lol/i, :laugh_random],
+		[/\bl+(o+l+)+\b/i, :laugh_random],
 		[/rofl/i, :laugh_random],
 		[/lmf?ao/i, :laugh_random],
 	]
