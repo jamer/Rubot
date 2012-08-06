@@ -5,4 +5,3 @@ def log(msg)
 		f.puts line
 	end
 end
-

@@ -1,6 +1,4 @@
 class Lonely < RubotPlugin
-	attr_accessor :chance
-
 	@@messages = [
 		"I'm cold...",
 		"It's dark in here...",
@@ -14,9 +12,7 @@ class Lonely < RubotPlugin
 	end
 
 	def on_privmsg(user, source, msg)
-		i = rand(100)
-		speak = i < @chance
-		say(source, @@messages.random) if speak
+		say(source, @@messages.random) if rand(100) < @chance
 	end
 end
 

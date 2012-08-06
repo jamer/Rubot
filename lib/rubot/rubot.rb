@@ -1,16 +1,19 @@
 # Rubot
 # A simple, pluggable IRC bot framework.
 
+require 'lib/rubot/client.rb'
+require 'lib/rubot/connection.rb'
+
 require 'yaml'
 
-class Rubot
-	def initialize(configs)
-		@sockets = []
+SECOND = 1
 
-		abort "no config files specified on command line" if configs.empty?
-		configs.each do |file|
-			spawn_client(file)
-		end
+class Rubot
+	def initialize(config_files)
+		abort "No config files specified on command line." if config_files.empty?
+
+		@connections = []
+		config_files.each { |f| spawn_client(f) }
 	end
 
 	def spawn_client(file)
@@ -26,24 +29,26 @@ class Rubot
 		channels = yaml["channels"]
 		plugins = yaml["plugins"]
 
-		abort "No channels found in config" if channels.nil?
-		abort "No plugins found in config" if plugins.nil?
+		abort "No channels found in config." if channels.nil?
+		abort "No plugins found in config." if plugins.nil?
 
-		socket = IRCSocket.new(address, port)
-		client = IRCClient.new(socket, nick, username, realname)
+		connection = IRCConnection::new(address, port)
+		client = IRCClient::new(connection, nick, username, realname)
+		@connections << connection
+
+		# Fire off initial network commands.
 		client.connect
-		channels.each {|channel| client.join("##{channel}") }
-		plugins.each {|plugin| client.add_plugin(plugin) }
-		@sockets << socket
+		channels.each { |name| client.join("##{name}") }
+		plugins.each { |name| client.add_plugin(name) }
 	end
 
 	def main_loop
 		# If we get an exception, then print it out and keep going
 		# We do NOT want to disconnect unexpectedly!
 		begin
-			handle_input
+			handle_input_loop
 		rescue Interrupt
-			interrupt_sockets
+			quit_connections("SIGINT")
 		rescue SystemExit
 		rescue Exception => detail
 			puts "Exception caught - #{detail.class}(\"#{detail.message}\")"
@@ -54,20 +59,26 @@ class Rubot
 	end
 
 	# Read and handle all open sockets until they all disconnect.
-	def handle_input
-		while @sockets.size > 0 and sleep(1)
-			@sockets.each do |socket|
-				socket.readline while (socket.connected? and socket.peek)
-			end
-			@sockets = @sockets.find_all {|socket| socket.connected? }
+	def handle_input_loop
+		while @connections.size > 0
+			sockets = @connections.map { |c| c.socket }
+			want_idle = @connections.any? { |c| c.want_network_idle? }
+			timeout = want_idle ? 1 * SECOND : nil
+
+			rd, wr, err = IO::select(sockets, nil, sockets, timeout)
+			puts "rubot.rb: IO::select(): socket error?" if err && err.size > 0
+
+			# OPTIMIZE: Could be made more efficient with socket -> connection lookup.
+			# Less select() syscalls.
+			@connections.each { |c| c.readlines }
+			@connections.select! { |c| c.connected? }
+			@connections.each { |c| c.emit_idle } if want_idle && rd.nil? && err.nil?
 		end
 		log "No connections left, quitting."
 	end
 
-	def interrupt_sockets
-		@sockets.each do |socket|
-			socket.quit_msg("Interrupted") if socket.connected?
-		end
+	def quit_connections(msg)
+		@connections.each { |c| c.quit(msg) }
+		@connections = []
 	end
 end
-

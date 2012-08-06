@@ -5,4 +5,3 @@ def show_stack_trace
 		puts e.backtrace
 	end
 end
-

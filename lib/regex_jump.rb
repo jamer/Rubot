@@ -32,4 +32,3 @@ class RegexJump
 		end
 	end
 end
-

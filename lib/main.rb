@@ -1,17 +1,15 @@
 #!/usr/bin/env ruby
-$:.push File.expand_path("../..", __FILE__)
 
-source_dirs = [
-	"lib",
-	"lib/ext",
-	"lib/rubot",
-]
+# Add directory above this file to 'require' search path.
+$:.push File::expand_path("../..", __FILE__)
 
-# Load all our source files.
-source_dirs.each do |dir| 
-	files = Dir.glob("#{dir}/*.rb").reject {|f| f == __FILE__ }
-	files.each do |file|
-		require file
+# Load all of our source files.
+require 'find'
+Find::find("lib") do |path|
+	if File::file?(path) and path.end_with?(".rb")
+		if not path.end_with?(__FILE__)
+			require path
+		end
 	end
 end
 
@@ -20,6 +18,6 @@ end
 #}
 
 # Start the program.
-bot = Rubot.new(ARGV)
+require 'lib/rubot/rubot.rb'
+bot = Rubot::new(ARGV)
 bot.main_loop
-

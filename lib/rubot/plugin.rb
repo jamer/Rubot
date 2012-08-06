@@ -27,7 +27,12 @@ class RubotPlugin
 	# user is identified at the time of the call, the block is run immediately.
 	# Otherwise it is stored away and a WHOIS request is sent off to the server.
 	# This method does not block.
+	#
+	# @param user  User object or String nickname
 	def on_identification(user, &block)
+		if user.instance_of? String
+			user = Users[user]
+		end
 		if user.registered
 			block.call
 		else
@@ -48,4 +53,3 @@ class RubotPlugin
 		}.compact
 	end
 end
-

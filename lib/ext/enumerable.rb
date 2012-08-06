@@ -7,4 +7,3 @@ module Enumerable
 		return nil
 	end
 end
-

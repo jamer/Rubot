@@ -2,9 +2,12 @@ class String
 	def scrape!(regex)
 		# Scrapes off a regex from a string, and returns the captures.
 		# If the regex is found inside the string, it is removed.
-		return nil unless (m = match regex)
-		gsub! regex, ""
-		return m.captures
+		if m = match(regex)
+			gsub!(regex, "")
+			return m.captures
+		else
+			return nil
+		end
 	end
 
 	def capitalize_each_word!
@@ -15,4 +18,3 @@ class String
 		return self
 	end
 end
-

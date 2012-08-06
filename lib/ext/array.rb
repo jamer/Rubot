@@ -3,4 +3,3 @@ class Array
 		return self[rand(length)]
 	end
 end
-

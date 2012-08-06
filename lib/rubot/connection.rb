@@ -1,39 +1,41 @@
 require 'socket'
 require 'openssl'
 
-require 'rubygems'
-require 'andand'
-
-# Semantic class only. Shows that subclasses listen to an IRCSocket.
-class IRCSocketListener
+# Semantic class only. Shows that subclasses listen to an IRCConnection.
+class IRCConnectionListener
 end
 
 # Implementation of the bare IRC protocol. There is very little logic in this
 # class. It simply abstracts the textual and networked properties of the IRC
 # protocol.
-class IRCSocket
-	attr_reader :host, :port
+class IRCConnection
+	attr_reader :host, :port, :socket
 	attr_accessor :log_input, :log_output
 
 	def initialize(host, port)
 		@host = host
 		@port = port
 		@log_input = @log_output = true
+		@log_pings = false
 		@connected = false
-		@listeners = Array.new
-		@last_active = Time.now
+		@listeners = Array::new
+		@last_active = Time::now
+	end
+
+	def to_s
+		return "<IRCConnection object @ #{host}:#{port}>"
 	end
 
 	# Connect to the IRC server. First try using SSL, then fall back to a
 	# regular TCP connection.
 	def connect
 		tcp = TCPSocket.new(@host, @port)
-		ssl = OpenSSL::SSL::SSLSocket.new(tcp)
+		ssl = OpenSSL::SSL::SSLSocket::new(tcp)
 		begin
 			ssl.connect
 			@socket = ssl
 		rescue
-			tcp = TCPSocket.new(@host, @port)
+			tcp = TCPSocket::new(@host, @port)
 			@socket = tcp
 		end
 		@connected = true
@@ -47,14 +49,21 @@ class IRCSocket
 		return @connected
 	end
 
-	def peek
-		read, write, error = select([@socket], nil, nil, 0)
-		if read
-			@last_active = Time.now
-		else
-			emit(:handle_network_idle, (Time.now - @last_active).to_i)
-		end
+	def can_read?
+		read, write, error = IO::select([@socket], nil, nil, 0)
 		return read != nil
+	end
+
+	def want_network_idle?
+		return @listeners.any? { |l| l.want_network_idle? }
+	end
+
+	def emit_idle
+		emit(:handle_network_idle, (Time::now - @last_active).to_i)
+	end
+
+	def readlines
+		readline while connected? and can_read?
 	end
 
 	def readline
@@ -62,10 +71,12 @@ class IRCSocket
 			@connected = false
 			@socket.close
 		else
+			@last_active = Time::now
 			buf = @socket.readpartial(1024*1024)
 			buf.split($/).each do |line|
 				line.chomp!
-				log("<-- #{line}") if @log_input
+				is_ping = line.upcase.start_with?("PING")
+				log("<-- #{line}") if (@log_pings || !is_ping) && @log_input
 				process_line(line)
 			end
 		end
@@ -102,12 +113,7 @@ class IRCSocket
 	end
 
 	# Disconnect from the server.
-	def quit
-		quit_msg("")
-	end
-
-	# Disconnect from the server.
-	def quit_msg(msg)
+	def quit(msg = "")
 		raise "already disconnected" unless @connected
 		write("QUIT #{msg}")
 		@connected = false
@@ -122,8 +128,8 @@ private
 	end
 
 	# Send a line to the IRC server.
-	def write(line)
-		log("--> #{line}") if @log_output
+	def write(line, is_ping = false)
+		log("--> #{line}") if (@log_pings || !is_ping) && @log_output
 		@socket.write("#{line}\r\n")
 	end
 
@@ -163,13 +169,15 @@ private
 
 		# Handle pings.
 		if line =~ /^PING(.*)/i
-			write("PONG#{$1}")
+			write("PONG#{$1}", true)
 			return
 		end
 
 		# Scrape the user.
 		nick, username, host = line.scrape!(/^:(\S+?)!(\S+?)@(\S+?)\s+/)
 		if nick
+			# FIXME: Don't necessarily add to Users struct if we can't see the user
+			# normally.
 			user = Users[nick]
 			user.username = username
 			user.host = host
@@ -189,4 +197,3 @@ private
 		end
 	end
 end
-

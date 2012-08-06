@@ -20,4 +20,3 @@ class IRCCooldown < Cooldown
 		end
 	end
 end
-

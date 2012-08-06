@@ -1,5 +1,5 @@
 class Channel
-	attr_reader :name, :rejoin
+	attr_reader :name
 	attr_accessor :users, :new_users
 
 	def initialize(name)
@@ -9,9 +9,12 @@ class Channel
 		@rejoin = false
 	end
 
+	def rejoin?
+		return rejoin
+	end
+
 	def rejoin=(bool)
 		@rejoin = bool
 		log "%s rejoin channel #{@name}" % (bool ? "Will" : "Won't")
 	end
 end
-

@@ -68,4 +68,3 @@ class User
 		user.is_a?(User) and user.nick == nick
 	end
 end
-

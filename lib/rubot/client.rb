@@ -1,33 +1,33 @@
-require './lib/rubot/socket'
+require 'lib/rubot/connection.rb'
 
 # Each IRCClient represents one connection to a server.
-class IRCClient < IRCSocketListener
+class IRCClient < IRCConnectionListener
 	attr_reader :nick, :username, :realname
 	attr_reader :channels
 
-	def initialize(ircsocket, nick, username, realname)
-		@ircsocket = ircsocket
+	def initialize(ircconnection, nick, username, realname)
+		@ircconnection = ircconnection
 		@nick = nick
 		@username = username
 		@realname = realname
 
 		@loggedin = false
 
-		@channels = Hash.new
-		@join_onlogin = Array.new
-		@to_rejoin = Array.new
+		@channels = Hash::new
+		@join_onlogin = Array::new
+		@to_rejoin = Array::new
 
-		@plugins = Hash.new
-		@whois = Hash.new
+		@plugins = Hash::new
+		@whois = Hash::new
 
-		ircsocket.add_listener(self)
+		ircconnection.add_listener(self)
 	end
 
 	# Connect to the IRC server
 	def connect
-		@ircsocket.connect
-		@ircsocket.nickname(@nick)
-		@ircsocket.login(@username, "localhost", @ircsocket.host, @realname)
+		@ircconnection.connect
+		@ircconnection.nickname(@nick)
+		@ircconnection.login(@username, "localhost", @ircconnection.host, @realname)
 	end
 
 	def add_plugin(name)
@@ -46,7 +46,7 @@ class IRCClient < IRCSocketListener
 		end
 		@plugins.delete(name)
 		if @plugins.empty?
-			@ircsocket.quit
+			@ircconnection.quit
 		end
 	end
 
@@ -72,7 +72,7 @@ class IRCClient < IRCSocketListener
 			end
 		when String
 			message.each_line do |line|
-				@ircsocket.send(action, recipient, message)
+				@ircconnection.send(action, recipient, message)
 			end
 		else
 			say(recipient, message.to_s, action)
@@ -87,7 +87,7 @@ class IRCClient < IRCSocketListener
 		elsif not @loggedin
 			@join_onlogin << name
 		else
-			@ircsocket.join(name)
+			@ircconnection.join(name)
 		end
 	end
 
@@ -95,33 +95,32 @@ class IRCClient < IRCSocketListener
 		if not @channels.include?(name)
 			log "Asked to part #{name} but I don't think I'm in it."
 		else
-			@ircsocket.part(channel)
+			@ircconnection.part(channel)
 		end
 	end
 
 	def who
-		@ircsocket.who
+		@ircconnection.who
 	end
 
 	def whois(name)
-		@ircsocket.whois(name)
+		@ircconnection.whois(name)
+	end
+
+	def want_network_idle?
+		return @to_rejoin.size > 0
 	end
 
 	def handle_network_idle(seconds)
 		if @to_rejoin.size > 0
-			@to_rejoin.each do |channel, time|
-				join(channel) if Time.now > time
-			end
-			@to_rejoin.reject! {|channel, time| Time.now > time }
-		elsif seconds == 10 and @channels.empty?
-			log "Idle for 10 seconds without being in any channels. Leaving server."
-			@ircsocket.quit
+			readies, @to_rejoin = @to_rejoin.partition { |_, _when| Time::now > _when }
+			readies.each { |channel, _| join(channel) }
 		end
 	end
 
 	def handle_welcome
 		@loggedin = true
-		@ircsocket.umode(@nick, "+B")
+		@ircconnection.umode(@nick, "+B")
 		@join_onlogin.each do |channel|
 			join(channel)
 		end
@@ -137,26 +136,27 @@ class IRCClient < IRCSocketListener
 	def handle_someone_joined(user, channel)
 		user.add_presence(channel)
 		if user.nick == @nick
-			@channels[channel] = Channel.new(channel)
-		else
-			@channels[channel].users[user.nick] = user
+			# We are just joining a channel. Start keeping track of it.
+			raise "channel #{channel} already exists" if @channels[channel]
+			@channels[channel] = Channel::new(channel)
 		end
+		@channels[channel].users[user.nick] = user
 		emit(:on_join, user, channel)
 	end
 
 	def handle_someone_parted(user, channel)
+		raise "channel #{channel} not found" if not @channels.include?(channel)
+
 		emit(:on_part, user, channel)
-		if user.nick == @nick # We are parting
-			if not @channels.include?(channel)
-				log "Server said I left #{channel} but I didn't think I was in it."
-			else
-				@to_rejoin << [channel, Time.now + 3] if @channels[channel].rejoin
-				@channels[channel].users.each do |nick, user|
-					handle_someone_parted(user, channel) if user.nick != @nick
-				end
-				@channels.delete(channel)
+		if user.nick == @nick
+			# We are parting.
+			@to_rejoin << [channel, Time::now + 3] if @channels[channel].rejoin?
+			@channels[channel].users.each do |nick, user|
+				handle_someone_parted(user, channel) if user.nick != @nick
 			end
-		else # Another user is parting
+			@channels.delete(channel)
+		else
+			# Another user is parting.
 			user.remove_presence(channel)
 			@channels[channel].users.delete(user.nick)
 		end
@@ -200,7 +200,7 @@ class IRCClient < IRCSocketListener
 	def handle_names_list_end(channel)
 		ch = @channels[channel]
 		ch.users = ch.new_users
-		ch.new_users = Hash.new
+		ch.new_users = Hash::new
 	end
 
 	def handle_who(channel, username, host, nick, umode, realname)
@@ -258,14 +258,13 @@ class IRCClient < IRCSocketListener
 			end
 		end
 
-		@whois = Hash.new
+		@whois = Hash::new
 
 		emit(:on_whois, user)
 	end
 
 	def handle_nickname_in_use
 		@nick += "_"
-		@ircsocket.nickname(@nick)
+		@ircconnection.nickname(@nick)
 	end
 end
-
