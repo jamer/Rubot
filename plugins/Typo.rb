@@ -1,4 +1,7 @@
 class Typo < RubotPlugin
+
+	# Attention: Matches that look like numbers will be converted to numbers, and
+	# will no longer be strings.
 	@@actions = [
 		[/^s\/(.+)\/(.+?)\/?$/                 , :correct_self],  # s/old/new/
 		[/^s,(.+),(.+?),?$/                    , :correct_self],  # s,old,new,
@@ -31,6 +34,9 @@ class Typo < RubotPlugin
 	end
 
 	def replace(source, nick, orig, cor)
+		orig = orig.to_s
+		cor = cor.to_s
+
 		return unless @msgs[nick]
 		found = @msgs[nick].find {|msg| msg =~ /#{orig}/ }
 		return unless found
@@ -49,6 +55,8 @@ class Typo < RubotPlugin
 	end
 
 	def remember_line(user, source, msg)
+		msg = msg.to_s
+
 		nick = user.nick
 		if msg =~ /^\001/
 			msg.sub!(/^\001ACTION/, "* #{user.nick}")
