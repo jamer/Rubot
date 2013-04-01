@@ -20,6 +20,7 @@ class IRCConnection
 		@connected = false
 		@listeners = Array::new
 		@last_active = Time::now
+		@linebuf_rd, @linebuf_wr = IO.pipe
 	end
 
 	def to_s
@@ -49,11 +50,6 @@ class IRCConnection
 		return @connected
 	end
 
-	def can_read?
-		read, write, error = IO::select([@socket], nil, nil, 0)
-		return read != nil
-	end
-
 	def want_network_idle?
 		return @listeners.any? { |l| l.want_network_idle? }
 	end
@@ -63,18 +59,17 @@ class IRCConnection
 	end
 
 	def readlines
-		readline while connected? and can_read?
-	end
-
-	def readline
+		@last_active = Time::now
 		if @socket.eof
 			@connected = false
 			@socket.close
 		else
-			@last_active = Time::now
-			buf = @socket.readpartial(1024*1024)
-			buf.split($/).each do |line|
-				line.chomp!
+			input = @socket.readpartial(1e6)
+			# Pushing data through a pipe preserves any incoming lines that are split
+			# across two or more reads.
+			@linebuf_wr << input
+			input.count("\n").times do
+				line = @linebuf_rd.gets.chomp
 				is_ping = line.upcase.start_with?("PING")
 				log("<-- #{line}") if (@log_pings || !is_ping) && @log_input
 				process_line(line)
@@ -82,7 +77,7 @@ class IRCConnection
 		end
 	end
 
-	# Lets create our IRC commands
+	# Create our IRC commands
 	{
 		:login => "USER %s %s %s :%s",
 		:umode => "MODE %s %s",

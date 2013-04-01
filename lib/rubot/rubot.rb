@@ -46,7 +46,7 @@ class Rubot
 		# If we get an exception, then print it out and keep going
 		# We do NOT want to disconnect unexpectedly!
 		begin
-			handle_input_loop
+			select_loop
 		rescue Interrupt
 			quit_connections("SIGINT")
 		rescue SystemExit
@@ -59,19 +59,28 @@ class Rubot
 	end
 
 	# Read and handle all open sockets until they all disconnect.
-	def handle_input_loop
+	def select_loop
 		while @connections.size > 0
 			sockets = @connections.map { |c| c.socket }
 			want_idle = @connections.any? { |c| c.want_network_idle? }
 			timeout = want_idle ? 1 * SECOND : nil
 
 			rd, wr, err = IO::select(sockets, nil, sockets, timeout)
-			puts "rubot.rb: IO::select(): socket error?" if err && err.size > 0
 
-			# OPTIMIZE: Could be made more efficient with socket -> connection lookup.
-			# Less select() syscalls.
-			@connections.each { |c| c.readlines }
-			@connections.select! { |c| c.connected? }
+			if rd && rd.size > 0
+				readables = @connections.select { |c| rd.include? c.socket }
+				readables.each { |c| c.readlines }
+			end
+
+			if err && err.size > 0
+				errored = @connections.select { |c| err.include?(c.socket) }
+				errored.each do |c|
+					puts "rubot.rb: IO::select(): error on #{c.host}, dropping connection"
+				end
+				@connections = @connections.select { |c| !err.include?(c.socket) }
+			end
+
+			@connections = @connections.select { |c| c.connected? }
 			@connections.each { |c| c.emit_idle } if want_idle && rd.nil? && err.nil?
 		end
 		log "No connections left, quitting."

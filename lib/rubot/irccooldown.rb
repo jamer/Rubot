@@ -1,3 +1,5 @@
+require 'lib/cooldown'
+
 class IRCCooldown < Cooldown
 	def initialize(client, seconds, error_msg)
 		super(seconds)
