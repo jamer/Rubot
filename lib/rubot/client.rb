@@ -128,7 +128,7 @@ class IRCClient < IRCConnectionListener
 	end
 
 	def handle_privmsg(user, target, message)
-		private_message = (target == @nick)
+		private_message = (target.downcase == @nick.downcase)
 		reply_to = private_message ? user.nick : target
 		emit(:on_privmsg, user, reply_to, message.to_s)
 	end
