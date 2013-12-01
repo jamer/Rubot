@@ -10,7 +10,7 @@ class Channel
 	end
 
 	def rejoin?
-		return rejoin
+		return @rejoin
 	end
 
 	def rejoin=(bool)

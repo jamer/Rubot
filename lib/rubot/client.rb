@@ -175,7 +175,13 @@ class IRCClient < IRCConnectionListener
 		end
 	end
 
-	def handle_someone_kicked(src, channel, target, reason)
+	def handle_someone_kicked(*params)
+		if params.length == 3 # server kicked someone
+			channel, target, reason = *params
+		end
+		if params.length == 4 # someone kicked someone else
+			src, channel, target, reason = *params
+		end
 		handle_someone_parted(Users[target], channel)
 	end
 
