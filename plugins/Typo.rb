@@ -1,12 +1,16 @@
+# Replace \/ with /
+
+require 'lib/icase-hash.rb'
+
 class Typo < RubotPlugin
 
 	# Attention: Matches that look like numbers will be converted to numbers, and
 	# will no longer be strings.
 	@@actions = [
-		[/^s\/(.+)\/(.+?)\/?$/                 , :correct_self],  # s/old/new/
-		[/^s,(.+),(.+?),?$/                    , :correct_self],  # s,old,new,
-		[/^(\S+?)\/(.+)\/(.+?)\/?$/            , :correct_other], # nick/old/new/
-		[/^(\S+?),(.+),(.+?),?$/               , :correct_other], # nick,old,new,
+		#  s /old              /new                     /gi
+		[/^s\/(([^\/]|\\\/)+?)\/(([^\/]|\\\/)+?(\\\/)?)\/?([gi]*)$/, :correct_self],
+		#  nick        /old              /new                     /gi
+		[/^([^\s\/]+?)\/(([^\/]|\\\/)+?)\/(([^\/]|\\\/)+?(\\\/)?)\/?([gi]*)$/, :correct_other],
 # broken
 #		[/^([^:,]+)[:,\s].*?s\/(.+)\/(.+?)\/?$/, :correct_other], # nick: s/old/new/
 		[/(.+)/, :remember_line],
@@ -19,7 +23,7 @@ class Typo < RubotPlugin
 		@remembered = 10
 
 		# This will hold previous messages from all users we see.
-		@msgs = {}
+		@msgs = IgnoreCaseHash.new
 	end
 
 	def on_privmsg(user, source, msg)
@@ -33,25 +37,36 @@ class Typo < RubotPlugin
 		@msgs[nick].pop if @msgs[nick].length > @remembered
 	end
 
-	def replace(source, nick, orig, cor)
+	def replace(source, nick, orig, cor, flags)
 		orig = orig.to_s
 		cor = cor.to_s
 
 		return unless @msgs[nick]
 		found = @msgs[nick].find {|msg| msg =~ /#{orig}/ }
 		return unless found
-		corrected = found.sub(/#{orig}/i, cor)
+		if flags.include?("i")
+			regex = /#{orig}/i
+		else
+			regex = /#{orig}/
+		end
+		if flags.include?("g")
+			corrected = found.gsub(regex, cor)
+		else
+			corrected = found.sub(regex, cor)
+		end
 		say(source, "#{nick} meant to say: #{corrected}")
 		add_history_item(nick, corrected)
 	end
 
-	def correct_self(user, source, orig, cor)
+	# I don't know why _3 is needed. Is it a bug that is present in 1.8? Does 1.9 or 2.0 need it?
+	def correct_self(user, source, orig, _1, cor, _2, _3, flags)
 		nick = user.nick
-		replace(source, nick, orig, cor)
+		replace(source, nick, orig, cor, flags)
 	end
 
-	def correct_other(user, source, nick, orig, cor)
-		replace(source, nick, orig, cor)
+	# I don't know why _3 is needed. Is it a bug that is present in 1.8? Does 1.9 or 2.0 need it?
+	def correct_other(user, source, nick, orig, _1, cor, _2, _3, flags)
+		replace(source, nick, orig, cor, flags)
 	end
 
 	def remember_line(user, source, msg)

@@ -135,7 +135,7 @@ class IRCClient < IRCConnectionListener
 
 	def handle_someone_joined(user, channel)
 		user.add_presence(channel)
-		if user.nick == @nick
+		if user.nick.downcase == @nick.downcase
 			# We are just joining a channel. Start keeping track of it.
 			raise "channel #{channel} already exists" if @channels[channel]
 			@channels[channel] = Channel::new(channel)
@@ -148,11 +148,11 @@ class IRCClient < IRCConnectionListener
 		raise "channel #{channel} not found" if not @channels.include?(channel)
 
 		emit(:on_part, user, channel)
-		if user.nick == @nick
+		if user.nick.downcase == @nick.downcase
 			# We are parting.
 			@to_rejoin << [channel, Time::now + 3] if @channels[channel].rejoin?
 			@channels[channel].users.each do |nick, user|
-				handle_someone_parted(user, channel) if user.nick != @nick
+				handle_someone_parted(user, channel) if user.nick.downcase != @nick.downcase
 			end
 			@channels.delete(channel)
 		else

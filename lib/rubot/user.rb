@@ -65,6 +65,6 @@ class User
 	end
 
 	def eql?(user)
-		user.is_a?(User) and user.nick == nick
+		user.is_a?(User) and user.nick.downcase == nick.downcase
 	end
 end

@@ -9,7 +9,7 @@ end
 # class. It simply abstracts the textual and networked properties of the IRC
 # protocol.
 class IRCConnection
-	attr_reader :host, :port, :socket
+	attr_reader :host, :port, :socket, :secure
 	attr_accessor :log_input, :log_output
 
 	def initialize(host, port)
@@ -18,6 +18,7 @@ class IRCConnection
 		@log_input = @log_output = true
 		@log_pings = false
 		@connected = false
+		@secure = false
 		@listeners = Array::new
 		@last_active = Time::now
 		@linebuf_rd, @linebuf_wr = IO.pipe
@@ -35,6 +36,7 @@ class IRCConnection
 		begin
 			ssl.connect
 			@socket = ssl
+			@secure = true
 		rescue
 			tcp = TCPSocket::new(@host, @port)
 			@socket = tcp
